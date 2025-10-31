@@ -1,9 +1,9 @@
+// backend/src/app.js
 const express = require('express');
 const cors = require('cors');
-const healthRoute = require('./routes/health.route');
+const authRoutes = require('./routes/auth.routes');
 
 const app = express();
-
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -11,6 +11,13 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use('/api/health', healthRoute);
+
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', service: 'softflow-api' });
+});
 
 module.exports = app;

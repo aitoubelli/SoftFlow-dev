@@ -19,7 +19,7 @@ git clone https://github.com/votre-organisation/monprojet-dev.git
 cd monprojet-dev
 ```
 
-# Initialiser l’environnement (installe les dépendances, démarre les conteneurs)
+### Initialiser l’environnement (installe les dépendances, démarre les conteneurs)
 ```bash
 chmod +x init.sh
 ./init.sh
@@ -29,7 +29,7 @@ chmod +x init.sh
 - 🔗 Frontend: http://localhost:3000
 - 🔗 API Health Check: http://localhost:8000/api/health
 
-## Project Structure
+## Structure du projet
     SoftFlow-dev/
     ├── backend/       # API Express, modèles MongoDB, routes
     ├── frontend/      # Application Next.js
@@ -37,7 +37,7 @@ chmod +x init.sh
     ├── init.sh        # Script d’initialisation en une commande
     └── README.md      # ← Vous êtes ici
 
-## Running Tests
+## Lancer les tests
 ```bash
 # Backend
 cd backend && npm test

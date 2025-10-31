@@ -1,4 +1,6 @@
+// backend/src/models/User.model.js
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
     email: {
@@ -17,11 +19,21 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['admin', 'owner', 'dev'],
         default: 'dev'
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
     }
+}, {
+    timestamps: true
 });
+
+// hash du mot de passe avant sauvegarde
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 12);
+    next();
+});
+
+// méthode pour comparer les mots de passe
+userSchema.methods.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema);

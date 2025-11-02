@@ -4,13 +4,18 @@ const request = require('supertest');
 const app = require('../src/app');
 const mongoose = require('mongoose');
 const User = require('../src/models/User.model.js');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 
+let mongoServer;
 beforeAll(async () => {
-    await mongoose.connect(process.env.MONGO_URI);
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  await mongoose.connect(uri);
 });
 
 afterAll(async () => {
-    await mongoose.connection.close();
+  await mongoose.connection.close();
+  if (mongoServer) await mongoServer.stop();
 });
 
 afterEach(async () => {
@@ -25,7 +30,7 @@ describe('Auth API', () => {
         .send({ username: 'test', email: 'test@mail.com', password: '12345678' });
 
     expect(res.statusCode).toBe(201);
-    // le rôle par défaut dans le modèle est 'dev' en minuscules
+    // le rôle par défaut dans le modèle est 'dev'
     expect(res.body.role).toBe('dev');
   });
 

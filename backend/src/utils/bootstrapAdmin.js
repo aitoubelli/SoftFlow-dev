@@ -12,7 +12,7 @@ const createAdminIfNotExists = async () => {
 
     const existing = await User.findOne({ email: adminEmail });
     if (!existing) {
-        const admin = new User({ email: adminEmail, password: adminPassword, role: 'admin' });
+        const admin = new User({ name: 'Admin', email: adminEmail, password: adminPassword, role: 'admin' });
         await admin.save();
         console.log(`✅ Compte admin créé : ${adminEmail}`);
     } else {

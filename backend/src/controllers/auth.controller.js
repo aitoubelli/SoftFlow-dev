@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { name, email, password } = req.body;
 
         // Vérifier si l'email existe déjà
         const existingUser = await User.findOne({ email });
@@ -13,7 +13,7 @@ const register = async (req, res) => {
         }
 
         // Créer l'utilisateur (rôle 'dev' par défaut)
-        const user = new User({ email, password, role: 'dev' });
+        const user = new User({ name, email, password, role: 'dev' });
         await user.save();
 
         // Ne pas renvoyer le mot de passe
@@ -39,7 +39,7 @@ const login = async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        res.json({ token, user: { id: user._id, email: user.email, role: user.role } });
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
     } catch (err) {
         res.status(500).json({ error: 'Erreur serveur.' });
     }

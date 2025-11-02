@@ -31,6 +31,10 @@ const Dashboard = () => {
     router.push("/auth");
   };
 
+  const handleGoProjects = () => {
+    router.push("/home");
+  };
+
   if (!currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
@@ -47,8 +51,11 @@ const Dashboard = () => {
             Welcome, {currentUser.name || currentUser.email}!
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-center">
+        <CardContent className="text-center flex flex-col items-center">
           <p className="text-lg">You are logged in as a {currentUser.role}.</p>
+          <Button onClick={handleGoProjects} className="mt-4" variant="destructive">
+            Go to my Projects
+          </Button>
           <Button onClick={handleLogout} className="mt-4" variant="destructive">
             Logout
           </Button>

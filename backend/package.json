@@ -21,6 +21,10 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
+<<<<<<< HEAD
+=======
+    "mongodb-memory-server": "^10.3.0",
+>>>>>>> workspace
     "nodemon": "^3.1.4",
     "supertest": "^7.0.0"
   },

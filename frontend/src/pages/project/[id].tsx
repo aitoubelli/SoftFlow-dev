@@ -17,7 +17,7 @@ export default function ProjectDetails() {
     const [project, setProject] = useState<any>(null);
     const [users, setUsers] = useState<any[]>([]);
     const [selectedDevs, setSelectedDevs] = useState<string[]>([]);
-    const { token } = useAuth();
+    const { token, user } = useAuth();
 
     useEffect(() => {
         if (id && token) {
@@ -75,6 +75,7 @@ export default function ProjectDetails() {
 
     const memberIds = project.members ? project.members.map((member: any) => member.user._id) : [];
     const availableUsers = users.filter(user => !memberIds.includes(user._id));
+    const isOwner = user?.id === project.owner?._id;
 
     return (
         <div className="container mx-auto p-4">
@@ -96,19 +97,21 @@ export default function ProjectDetails() {
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                    <div className="flex gap-2">
-                        <Select onValueChange={(value) => setSelectedDevs(value ? [value] : [])}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Assign a developer" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {availableUsers.map(user => (
-                                    <SelectItem key={user._id} value={user._id}>{user.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button onClick={handleAssignDevs} disabled={selectedDevs.length === 0}>Assign</Button>
-                    </div>
+                    {isOwner && (
+                        <div className="flex gap-2">
+                            <Select onValueChange={(value) => setSelectedDevs(value ? [value] : [])}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Assign a developer" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableUsers.map(user => (
+                                        <SelectItem key={user._id} value={user._id}>{user.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button onClick={handleAssignDevs} disabled={selectedDevs.length === 0}>Assign</Button>
+                        </div>
+                    )}
                     <Button onClick={() => router.back()}>Go Back</Button>
                 </CardFooter>
             </Card>

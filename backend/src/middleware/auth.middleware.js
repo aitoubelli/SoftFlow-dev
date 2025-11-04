@@ -29,4 +29,12 @@ const adminOnly = (req, res, next) => {
     }
 };
 
-module.exports = { protect, adminOnly };
+const adminOrOwnerOnly = (req, res, next) => {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'owner')) {
+        next();
+    } else {
+        res.status(403).json({ error: 'Accès réservé aux administrateurs ou propriétaires.' });
+    }
+};
+
+module.exports = { protect, adminOnly, adminOrOwnerOnly };

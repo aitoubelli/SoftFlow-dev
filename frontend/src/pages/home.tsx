@@ -2,14 +2,27 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
+  const { user, token, logout, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/auth");
+    }
+  }, [isAuthenticated, router]);
 
   const fetchProjects = async () => {
+    if (!token) return;
     try {
-      const res = await fetch("http://localhost:8000/api/projects");
+      const res = await fetch("http://localhost:8000/api/projects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!res.ok) {
         throw new Error("Failed to fetch projects");
       }
@@ -21,21 +34,30 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchProjects().then((data) => {
-      if (data) {
-        setProjects(data);
-        console.log("Fetched projects:", data);
-      }
-    });
-  }, []);
+    if (user && token) {
+      fetchProjects().then((data) => {
+        if (data) {
+          setProjects(data);
+          console.log("Fetched projects:", data);
+        }
+      });
+    }
+  }, [user, token]);
+
+    const handleLogout = () => {
+    logout();
+    router.push("/auth");
+  };
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div className="flex items-center">
         <h1 className="font-semibold text-lg md:text-2xl">Projects</h1>
-        <Button className="ml-auto" size="sm" onClick={() => router.push("/addProject")}>
-          Add Project
-        </Button>
+        {user && (user.role === 'admin' || user.role === 'owner') && (
+            <Button className="ml-auto" size="sm" onClick={() => router.push("/addProject")}>
+                Add Project
+            </Button>
+        )}
       </div>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
         {projects.map((project: any) => (
@@ -53,8 +75,13 @@ export default function Home() {
               </p>
             </CardContent>
           </Card>
+          
         ))}
       </div>
+
+      <Button onClick={handleLogout} className="mt-4" variant="destructive">
+        Logout
+      </Button>
     </main>
   );
 }

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils"; // Import cn utility
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -33,12 +34,14 @@ const Auth = () => {
 
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
 
   // Remove client-side user management
   // This useEffect is no longer needed as authentication is handled by the backend.
   useEffect(() => {
-    localStorage.removeItem("users"); // Ensure old local storage data is cleared
-    localStorage.removeItem("currentUser");
+    // The AuthProvider now handles token and user state.
+    // localStorage.removeItem("users"); // Ensure old local storage data is cleared
+    // localStorage.removeItem("currentUser");
   }, []);
 
   const checkPasswordStrength = (password: string) => {
@@ -85,8 +88,7 @@ const Auth = () => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        login(data.token);
         toast({
           title: "Success",
           description: "Logged in successfully!",
@@ -160,9 +162,10 @@ const Auth = () => {
       const data = await response.json();
 
       if (response.ok) {
+        login(data.token);
         toast({
           title: "Success",
-          description: "Account created successfully!",
+          description: "Account created successfully! You are now logged in.",
         });
         router.push("/dashboard");
       } else {

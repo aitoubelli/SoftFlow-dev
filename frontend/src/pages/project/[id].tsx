@@ -99,7 +99,7 @@ export default function ProjectDetails() {
                 <CardFooter className="flex justify-between">
                     {isOwner && (
                         <div className="flex gap-2">
-                            <Select onValueChange={(value) => setSelectedDevs(value ? [value] : [])}>
+                            <Select onValueChange={(value: string | undefined) => setSelectedDevs(value ? [value] : [])}>
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Assign a developer" />
                                 </SelectTrigger>

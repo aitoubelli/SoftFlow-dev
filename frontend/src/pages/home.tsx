@@ -7,7 +7,13 @@ import { useAuth } from "@/hooks/useAuth";
 export default function Home() {
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
-  const { user, token } = useAuth();
+  const { user, token, logout, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/auth");
+    }
+  }, [isAuthenticated, router]);
 
   const fetchProjects = async () => {
     if (!token) return;
@@ -39,8 +45,7 @@ export default function Home() {
   }, [user, token]);
 
     const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("currentUser");
+    logout();
     router.push("/auth");
   };
 

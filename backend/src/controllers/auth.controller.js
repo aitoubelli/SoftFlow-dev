@@ -49,4 +49,13 @@ const getProfile = (req, res) => {
     res.json({ user: req.user });
 };
 
-module.exports = { register, login, getProfile };
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({ role: 'dev' }, 'name email');
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur serveur.' });
+    }
+};
+
+module.exports = { register, login, getProfile, getAllUsers };

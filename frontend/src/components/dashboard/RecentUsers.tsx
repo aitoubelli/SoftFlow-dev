@@ -7,9 +7,9 @@ export function RecentUsers() {
   return (
     <Card className="col-span-full">
       <CardHeader>
-        <CardTitle>Recent Users</CardTitle>
+        <CardTitle>Utilisateurs Récents</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Latest registered users in the system
+          Derniers utilisateurs enregistrés dans le système
         </p>
       </CardHeader>
       <CardContent>

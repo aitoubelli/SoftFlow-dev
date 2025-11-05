@@ -81,7 +81,7 @@ export default function Home() {
                 className="shrink-0 md:hidden"
               >
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
+                <span className="sr-only">Basculer le menu de navigation</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
@@ -104,25 +104,25 @@ export default function Home() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Paramètres</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logout()}>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => logout()}>Déconnexion</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
           <div className="flex items-center justify-between">
-            <Breadcrumbs items={[{ label: "Home", href: "/home" }, { label: "Projects", href: "/home" }]} />
+            <Breadcrumbs items={[{ label: "Accueil", href: "/home" }, { label: "Mes Projets", href: "/home" }]} />
             {user && (user.role === 'admin' || user.role === 'owner') && (
                 <button className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-md text-sm" onClick={() => router.push("/addProject")}>
-                    Add Project
+                    Ajouter un Projet
                 </button>
             )}
           </div>
-          <h1 className="font-semibold text-lg md:text-2xl">Projects</h1>
+          <h1 className="font-semibold text-lg md:text-2xl">Mes Projets</h1>
           <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
             {projects.map((project: any) => (
               <div

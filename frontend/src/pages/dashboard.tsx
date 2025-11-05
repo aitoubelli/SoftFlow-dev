@@ -48,7 +48,7 @@ const Dashboard = () => {
                 className="shrink-0 md:hidden"
               >
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
+                <span className="sr-only">Basculer le menu de navigation</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
@@ -71,80 +71,70 @@ const Dashboard = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Paramètres</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push("/auth")}>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/auth")}>Déconnexion</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
           <div className="flex items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">Tableau de bord administrateur</h1>
-          </div>
-          <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-4">
-            <div className="flex flex-col items-center gap-1 text-center">
-              <h3 className="text-2xl font-bold tracking-tight">
-                Bon retour, admin!
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Voici un aperçu de votre système.
-              </p>
-            </div>
+            <h1 className="text-lg font-semibold md:text-2xl">Tableau de bord</h1>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
             <Card x-chunk="dashboard-01-chunk-0">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Users
+                  Utilisateurs Totaux
                 </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">3</div>
                 <p className="text-xs text-muted-foreground">
-                  <ArrowUpRight className="h-3 w-3 inline" /> All registered users
+                  <ArrowUpRight className="h-3 w-3 inline" /> Tous les utilisateurs enregistrés
                 </p>
               </CardContent>
             </Card>
             <Card x-chunk="dashboard-01-chunk-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Administrators
+                  Administrateurs
                 </CardTitle>
                 <Shield className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">1</div>
                 <p className="text-xs text-muted-foreground">
-                  System administrators
+                  Administrateurs système
                 </p>
               </CardContent>
             </Card>
             <Card x-chunk="dashboard-01-chunk-2">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Project Owners</CardTitle>
+                <CardTitle className="text-sm font-medium">Chefs de Projet</CardTitle>
                 <Crown className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">1</div>
                 <p className="text-xs text-muted-foreground">
-                  Project managers
+                  Chefs de projet
                 </p>
               </CardContent>
             </Card>
             <Card x-chunk="dashboard-01-chunk-3">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Developers</CardTitle>
+                <CardTitle className="text-sm font-medium">Développeurs</CardTitle>
                 <Code className="h-4 w-4 text-gray-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">1</div>
                 <p className="text-xs text-muted-foreground">
-                  Development team
+                  Équipe de développement
                 </p>
               </CardContent>
             </Card>

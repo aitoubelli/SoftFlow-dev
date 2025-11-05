@@ -160,7 +160,7 @@ export default function Users() {
                 className="shrink-0 md:hidden"
               >
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
+                <span className="sr-only">Basculer le menu de navigation</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
@@ -183,35 +183,35 @@ export default function Users() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Paramètres</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logout()}>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => logout()}>Déconnexion</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
           <div className="flex items-center justify-between">
-            <Breadcrumbs items={[{ label: "User Management", href: "/users" }]} />
+            <Breadcrumbs items={[{ label: "Gestion des Utilisateurs", href: "/users" }]} />
           </div>
-          <h1 className="font-semibold text-lg md:text-2xl">User Management</h1>
+          <h1 className="font-semibold text-lg md:text-2xl">Gestion des Utilisateurs</h1>
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
                 <UsersIcon className="h-5 w-5 text-primary" />
-                <CardTitle>User Management</CardTitle>
+                <CardTitle>Gestion des Utilisateurs</CardTitle>
               </div>
-              <CardDescription>Manage user roles and permissions</CardDescription>
+              <CardDescription>Gérer les rôles et les permissions des utilisateurs</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Nom</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
+                    <TableHead>Rôle</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -226,7 +226,7 @@ export default function Users() {
                       <TableCell>
                         {currentUser && currentUser._id === user._id && currentUser.role === "admin" ? (
                           <Badge variant="outline" className="w-32 justify-center">
-                            Cannot modify own role
+                            Impossible de modifier son propre rôle
                           </Badge>
                         ) : (
                           <Select
@@ -236,13 +236,13 @@ export default function Users() {
                             }
                           >
                             <SelectTrigger className="w-32">
-                              <SelectValue>{user.role}</SelectValue> {/* Display current role as text */}
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="owner">Owner</SelectItem>
-                              <SelectItem value="dev">Developer</SelectItem>
-                            </SelectContent>
+                            <SelectValue>{user.role}</SelectValue> {/* Display current role as text */}
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="owner">Propriétaire</SelectItem>
+                            <SelectItem value="dev">Développeur</SelectItem>
+                          </SelectContent>
                           </Select>
                         )}
                       </TableCell>

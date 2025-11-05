@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { UserRoleBadge } from "./UserRoleBadge";
+import Dashboard from '../../pages/dashboard';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -82,28 +83,28 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
               >
                 <Home className="h-4 w-4" />
-                {!isCollapsed && "Dashboard Home"}
+                {!isCollapsed && "Accueil Dashboard"}
               </Link>
               <Link
                 href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Settings className="h-4 w-4" />
-                {!isCollapsed && "Profile Settings"}
+                {!isCollapsed && "Mon Profil"}
               </Link>
               <Link
                 href="/home"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Code className="h-4 w-4" />
-                {!isCollapsed && "My Projects"}
+                {!isCollapsed && "Mes Projets"}
               </Link>
               <Link
                 href="/users"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Users className="h-4 w-4" />
-                {!isCollapsed && "User Management"}
+                {!isCollapsed && "Gestion des Utilisateurs"}
               </Link>
             </nav>
           </div>
@@ -135,28 +136,28 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <Home className="h-5 w-5" />
-              Dashboard Home
+              Accueil Dashboard
             </Link>
             <Link
               href="#"
               className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <Settings className="h-5 w-5" />
-              Profile Settings
+              Mon de Profil
             </Link>
             <Link
               href="/home"
               className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <Code className="h-5 w-5" />
-              My Projects
+              Mes Projets
             </Link>
             <Link
               href="/users"
               className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
             >
               <Users className="h-5 w-5" />
-              User Management
+              Gestion des Utilisateurs
             </Link>
           </nav>
         </SheetContent>

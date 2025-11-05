@@ -26,23 +26,7 @@ if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/
     exit 1
 fi
 
-# 2. Installer les dépendances backend
-echo "📦 Installation des dépendances backend..."
-cd backend
-if [ ! -f "node_modules" ]; then
-    npm install
-fi
-cd ..
-
-# 3. Installer les dépendances frontend
-echo "📦 Installation des dépendances frontend..."
-cd frontend
-if [ ! -f "node_modules" ]; then
-    npm install
-fi
-cd ..
-
-# 4. Créer les fichiers .env s'ils n'existent pas
+# 2. Créer les fichiers .env s'ils n'existent pas
 echo "🔐 Configuration des variables d'environnement..."
 
 if [ ! -f "backend/.env" ]; then
@@ -50,8 +34,9 @@ if [ ! -f "backend/.env" ]; then
     echo "✅ backend/.env créé à partir de .env.example"
 fi
 
-# 5. Lancer les services avec Docker Compose
+# 3. Lancer les services avec Docker Compose
 echo "🐳 Démarrage des services avec Docker Compose..."
+docker-compose build --no-cache backend
 docker-compose up --build -d
 
 # 6. Afficher les URLs d’accès

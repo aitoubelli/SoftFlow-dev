@@ -10,6 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export default function ProjectDetails() {
     const router = useRouter();
@@ -20,7 +21,7 @@ export default function ProjectDetails() {
     const { token, user } = useAuth();
 
     useEffect(() => {
-        if (id && token) {
+        if (router.isReady && id && token) {
             fetch(`http://localhost:8000/api/projects/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -32,19 +33,23 @@ export default function ProjectDetails() {
                     }
                     return res.json();
                 })
-                .then(data => setProject(data))
-                .catch(error => console.error('Error fetching project details:', error));
-            
+                .then(data => {
+                    setProject(data);
+                })
+                .catch((error: Error) => console.error('Error fetching project details:', error));
+
             fetch('http://localhost:8000/api/users', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 }
             })
                 .then(res => res.json())
-                .then(data => setUsers(data))
-                .catch(error => console.error('Error fetching users:', error));
+                .then(data => {
+                    setUsers(data);
+                })
+                .catch((error: Error) => console.error('Error fetching users:', error));
         }
-    }, [id, token]);
+    }, [id, token, router.isReady]);
 
     const handleAssignDevs = async () => {
         if (!token) return;
@@ -56,16 +61,17 @@ export default function ProjectDetails() {
                     'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({ userIds: selectedDevs }),
-                
+
             });
             if (!res.ok) {
-                console.log(res);
                 throw new Error('Failed to assign developers');
             }
             const updatedProject = await res.json();
             setProject(updatedProject);
-        } catch (error) {
+            toast.success("Developer(s) assigned successfully!");
+        } catch (error: any) {
             console.error('Error assigning developers:', error);
+            toast.error(error.message || "Failed to assign developer(s).");
         }
     };
 
@@ -73,9 +79,11 @@ export default function ProjectDetails() {
         return <div>Loading...</div>;
     }
 
-    const memberIds = project.members ? project.members.map((member: any) => member.user._id) : [];
-    const availableUsers = users.filter(user => !memberIds.includes(user._id));
-    const isOwner = user?.id === project.owner?._id;
+    const memberIds = project.members
+        ? project.members.filter((member: any) => member.user).map((member: any) => member.user._id)
+        : [];
+    const availableUsers = users.filter(u => !memberIds.includes(u._id) && u.role === 'dev'); // Filter to only include 'dev' users not already members
+    const canAssignMembers = user?._id === project.owner?._id || user?.role === 'admin';
 
     return (
         <div className="container mx-auto p-4">
@@ -91,21 +99,21 @@ export default function ProjectDetails() {
                         <h4 className="font-bold mt-4">Members:</h4>
                         <ul>
                             {project.members && project.members.map((member: any) => (
-                                <li key={member.user._id}>{member.user.name} ({member.role})</li>
+                                member.user ? <li key={member.user._id}>{member.user.name} ({member.role})</li> : null
                             ))}
                         </ul>
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                    {isOwner && (
+                    {canAssignMembers && (
                         <div className="flex gap-2">
                             <Select onValueChange={(value: string | undefined) => setSelectedDevs(value ? [value] : [])}>
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Assign a developer" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {availableUsers.map(user => (
-                                        <SelectItem key={user._id} value={user._id}>{user.name}</SelectItem>
+                                    {availableUsers.map(u => (
+                                        <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

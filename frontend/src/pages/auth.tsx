@@ -1,25 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils"; // Import cn utility
+import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
@@ -31,9 +14,9 @@ const Auth = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordStrength, setPasswordStrength] = useState("Weak");
+  const [activeTab, setActiveTab] = useState("login");
 
   const router = useRouter();
-  const { toast } = useToast();
   const { login } = useAuth();
 
   // Remove client-side user management
@@ -67,11 +50,7 @@ const Auth = () => {
     const password = formData.get("password") as string;
 
     if (!email || !password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
+      toast.error("Please fill in all fields");
       setIsLoading(false);
       return;
     }
@@ -89,24 +68,13 @@ const Auth = () => {
 
       if (response.ok) {
         login(data.token);
-        toast({
-          title: "Success",
-          description: "Logged in successfully!",
-        });
+        toast.success("Logged in successfully!");
         router.push("/dashboard");
       } else {
-        toast({
-          title: "Error",
-          description: data.error || "Invalid email or password",
-          variant: "destructive",
-        });
+        toast.error(data.error || "Invalid email or password");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to connect to the server.",
-        variant: "destructive",
-      });
+      toast.error("Failed to connect to the server.");
     } finally {
       setIsLoading(false);
     }
@@ -163,159 +131,178 @@ const Auth = () => {
 
       if (response.ok) {
         login(data.token);
-        toast({
-          title: "Success",
-          description: "Account created successfully! You are now logged in.",
-        });
+        toast.success("Account created successfully! You are now logged in.");
         router.push("/dashboard");
       } else {
-        toast({
-          title: "Error",
-          description: data.error || "Failed to create account",
-          variant: "destructive",
-        });
+        toast.error(data.error || "Failed to create account");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to connect to the server.",
-        variant: "destructive",
-      });
+      toast.error("Failed to connect to the server.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md shadow-elegant">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center bg-gradient-hero bg-clip-text text-transparent">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8">
+        <div className="space-y-2 mb-6">
+          <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Bienvenue sur ProjectFlow
-          </CardTitle>
-          <CardDescription className="text-center">
+          </h2>
+          <p className="text-center text-gray-500 text-sm">
             Connectez-vous à votre compte ou créez-en un nouveau
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Connexion</TabsTrigger>
-              <TabsTrigger value="signup">Inscription</TabsTrigger>
-            </TabsList>
+          </p>
+        </div>
+        <div>
+          <div className="flex justify-center mb-6 bg-gray-100 rounded-lg p-1">
+            <button
+              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === "login"
+                  ? "bg-white text-gray-800 shadow-md"
+                  : "text-gray-500 hover:bg-gray-50"
+              }`}
+              onClick={() => setActiveTab("login")}
+            >
+              Connexion
+            </button>
+            <button
+              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                activeTab === "signup"
+                  ? "bg-white text-gray-800 shadow-md"
+                  : "text-gray-500 hover:bg-gray-50"
+              }`}
+              onClick={() => setActiveTab("signup")}
+            >
+              Inscription
+            </button>
+          </div>
 
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    name="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Mot de passe</Label>
-                  <Input
-                    id="login-password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  variant="hero"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Connexion en cours..." : "Se connecter"}
-                </Button>
-              </form>
-            </TabsContent>
+          {activeTab === "login" && (
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="login-email" className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  placeholder="admin@admin.com"
+                  required
+                  className="w-full px-4 py-2 bg-blue-50 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-800"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">
+                  Mot de passe
+                </label>
+                <input
+                  id="login-password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-4 py-2 bg-blue-50 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-800"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-md shadow-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+                disabled={isLoading}
+              >
+                {isLoading ? "Connexion en cours..." : "Se connecter"}
+              </button>
+            </form>
+          )}
 
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nom complet</Label>
-                  <Input
-                    id="signup-name"
-                    name="name"
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                    value={signupName}
-                    onChange={(e) => {
-                      setSignupName(e.target.value);
-                      setNameError("");
-                    }}
-                  />
-                  {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    name="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    value={signupEmail}
-                    onChange={(e) => {
-                      setSignupEmail(e.target.value);
-                      setEmailError("");
-                    }}
-                  />
-                  {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Mot de passe</Label>
-                  <Input
-                    id="signup-password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                    value={signupPassword}
-                    onChange={(e) => {
-                      setSignupPassword(e.target.value);
-                      setPasswordError("");
-                      setPasswordStrength(checkPasswordStrength(e.target.value));
-                    }}
-                  />
-                  {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
-                  {signupPassword && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-medium">Strength:</span>
-                      <span
-                        className={cn(
-                          "font-semibold",
-                          passwordStrength === "Weak" && "text-red-500",
-                          passwordStrength === "Medium" && "text-yellow-500",
-                          passwordStrength === "Strong" && "text-green-500"
-                        )}
-                      >
-                        {passwordStrength}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  variant="hero"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Création du compte..." : "Créer un compte"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+          {activeTab === "signup" && (
+            <form onSubmit={handleSignup} className="space-y-5">
+              <div className="space-y-2">
+                <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700">
+                  Nom complet
+                </label>
+                <input
+                  id="signup-name"
+                  name="name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  value={signupName}
+                  onChange={(e) => {
+                    setSignupName(e.target.value);
+                    setNameError("");
+                  }}
+                  className="w-full px-4 py-2 bg-blue-50 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-800"
+                />
+                {nameError && <p className="text-red-500 text-sm">{nameError}</p>}
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  id="signup-email"
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  required
+                  value={signupEmail}
+                  onChange={(e) => {
+                    setSignupEmail(e.target.value);
+                    setEmailError("");
+                  }}
+                  className="w-full px-4 py-2 bg-blue-50 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-800"
+                />
+                {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700">
+                  Mot de passe
+                </label>
+                <input
+                  id="signup-password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  value={signupPassword}
+                  onChange={(e) => {
+                    setSignupPassword(e.target.value);
+                    setPasswordError("");
+                    setPasswordStrength(checkPasswordStrength(e.target.value));
+                  }}
+                  className="w-full px-4 py-2 bg-blue-50 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-gray-800"
+                />
+                {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
+                {signupPassword && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium text-gray-700">Strength:</span>
+                    <span
+                      className={`font-semibold ${
+                        passwordStrength === "Weak"
+                          ? "text-red-500"
+                          : passwordStrength === "Medium"
+                          ? "text-yellow-500"
+                          : "text-green-500"
+                      }`}
+                    >
+                      {passwordStrength}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-md shadow-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+                disabled={isLoading}
+              >
+                {isLoading ? "Création du compte..." : "Créer un compte"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

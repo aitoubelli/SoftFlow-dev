@@ -4,7 +4,13 @@ const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        // accepter soit `name` soit `username` (compatibilité avec les tests/clients)
+        const { username, name, email, password } = req.body;
+        const displayName = name || username;
+
+        if (!displayName || !email || !password) {
+            return res.status(400).json({ error: 'Champs manquants.' });
+        }
 
         // Vérifier si l'email existe déjà
         const existingUser = await User.findOne({ email });
@@ -13,7 +19,7 @@ const register = async (req, res) => {
         }
 
         // Créer l'utilisateur (rôle 'dev' par défaut)
-        const user = new User({ name, email, password, role: 'dev' });
+        const user = new User({ name: displayName, email, password, role: 'dev' });
         await user.save();
 
         // Ne pas renvoyer le mot de passe

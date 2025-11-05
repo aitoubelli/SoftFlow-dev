@@ -51,7 +51,7 @@ export function UserRoleBadge({ role }: UserRoleBadgeProps) {
         variant={getBadgeVariant(role)}
         className={getBadgeClassName(role)}
       >
-        {role || 'admin'}
+        {role}
       </Badge>
     </div>
   );

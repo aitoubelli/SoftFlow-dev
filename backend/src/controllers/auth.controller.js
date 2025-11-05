@@ -51,11 +51,46 @@ const getProfile = (req, res) => {
 
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find({ role: 'dev' }, 'name email');
-        res.json(users);
+        const users = await User.find({}, 'name email role'); // Fetch all users and their roles
+
+        const formattedUsers = users.map(user => ({
+            _id: user._id,
+            name: user.name || 'Unknown User',
+            email: user.email,
+            role: user.role || 'dev'
+        }));
+        res.json(formattedUsers);
     } catch (err) {
         res.status(500).json({ error: 'Erreur serveur.' });
     }
 };
 
-module.exports = { register, login, getProfile, getAllUsers };
+const updateUserRole = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        if (!['admin', 'owner', 'dev'].includes(role)) {
+            return res.status(400).json({ error: 'Rôle invalide.' });
+        }
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+        }
+
+        // Prevent an admin from downgrading their own role
+        if (req.user.id === id && req.user.role === 'admin' && role !== 'admin') {
+            return res.status(403).json({ error: 'Vous ne pouvez pas rétrograder votre propre rôle administrateur.' });
+        }
+
+        user.role = role;
+        await user.save();
+
+        res.json({ message: 'Rôle utilisateur mis à jour avec succès.', user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur serveur.' });
+    }
+};
+
+module.exports = { register, login, getProfile, getAllUsers, updateUserRole };

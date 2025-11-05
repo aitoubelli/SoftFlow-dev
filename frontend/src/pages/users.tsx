@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,66 +29,120 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserRoleBadge } from "@/components/dashboard/UserRoleBadge";
-
-// Placeholder for toast function - replace with actual toast implementation (e.g., from useToast hook)
-const toast = ({ title, description, variant }: { title: string; description: string; variant?: string }) => {
-  console.log("Toast:", title, description, variant);
-};
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface User {
+  _id: string;
   name: string;
   email: string;
   role: "admin" | "owner" | "dev";
 }
 
 export default function Users() {
-  const { user: currentUser, logout, isAuthenticated } = useAuth();
+  const { user: currentUser, logout, isAuthenticated, token } = useAuth(); // get token from useAuth
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [users, setUsers] = useState<User[]>([
-    { name: "Admin User", email: "admin@example.com", role: "admin" },
-    { name: "Project Owner", email: "owner@example.com", role: "owner" },
-    { name: "Developer One", email: "dev1@example.com", role: "dev" },
-    { name: "Developer Two", email: "dev2@example.com", role: "dev" },
-  ]);
+  const fetchUsers = useCallback(async () => {
+    if (!token) return; // Ensure token is available before fetching
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("You are not authorized to view user management.");
+        }
+        throw new Error(`Failed to fetch users: ${response.statusText}`);
+      }
+
+      const data: User[] = await response.json();
+      console.log("Users Page: Fetched user data:", data);
+      setUsers(data);
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message, {
+        description: "Failed to fetch users.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/auth");
+    } else {
+      fetchUsers();
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, fetchUsers]);
 
-  const updateUserRole = (email: string, newRole: "admin" | "owner" | "dev") => {
+  const updateUserRole = async (userId: string, newRole: "admin" | "owner" | "dev") => {
+    if (!token) return;
+
     // Prevent admin from downgrading themselves
-    if (currentUser && currentUser.email === email && currentUser.role === "admin" && newRole !== "admin") {
-      toast({
-        title: "Error",
-        description: "You cannot downgrade your own admin role",
-        variant: "destructive",
+    if (currentUser && currentUser._id === userId && currentUser.role === "admin" && newRole !== "admin") {
+      toast.error("You cannot downgrade your own admin role", {
+        description: "Admin role modification denied.",
       });
       return;
     }
 
-    setUsers((prevUsers) =>
-      prevUsers.map((u) => (u.email === email ? { ...u, role: newRole } : u))
-    );
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/${userId}/role`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
 
-    // In a real application, you would update the backend here.
-    // For now, we're just updating local state.
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error("You are not authorized to update user roles.");
+        }
+        throw new Error(`Failed to update user role: ${response.statusText}`);
+      }
 
-    toast({
-      title: "Success",
-      description: `User role updated to ${newRole}`,
-    });
+      const data = await response.json();
+      toast.success(data.message, {
+        description: "User role updated successfully.",
+      });
+      fetchUsers(); // Re-fetch users to update the list
+    } catch (err: any) {
+      toast.error(err.message, {
+        description: "Failed to update user role.",
+      });
+    }
   };
 
-  // Removed getRoleBadgeVariant as UserRoleBadge will handle it
-
-  if (!currentUser) {
+  if (!currentUser || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-        Loading...
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-[250px]" />
+          <Skeleton className="h-4 w-[200px]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4 text-red-500">
+        Error: {error}
       </div>
     );
   }
@@ -140,7 +194,7 @@ export default function Users() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
           <div className="flex items-center justify-between">
-            <Breadcrumbs items={[{ label: "Home", href: "/home" }, { label: "User Management", href: "/users" }]} />
+            <Breadcrumbs items={[{ label: "User Management", href: "/users" }]} />
           </div>
           <h1 className="font-semibold text-lg md:text-2xl">User Management</h1>
           <Card>
@@ -170,7 +224,7 @@ export default function Users() {
                         <UserRoleBadge role={user.role} />
                       </TableCell>
                       <TableCell>
-                        {currentUser && currentUser.email === user.email && currentUser.role === "admin" ? (
+                        {currentUser && currentUser._id === user._id && currentUser.role === "admin" ? (
                           <Badge variant="outline" className="w-32 justify-center">
                             Cannot modify own role
                           </Badge>
@@ -178,11 +232,11 @@ export default function Users() {
                           <Select
                             value={user.role}
                             onValueChange={(value: "admin" | "owner" | "dev") =>
-                              updateUserRole(user.email, value)
+                              updateUserRole(user._id, value)
                             }
                           >
                             <SelectTrigger className="w-32">
-                              <SelectValue />
+                              <SelectValue>{user.role}</SelectValue> {/* Display current role as text */}
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="admin">Admin</SelectItem>

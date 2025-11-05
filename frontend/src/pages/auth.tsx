@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
@@ -50,7 +50,9 @@ const Auth = () => {
     const password = formData.get("password") as string;
 
     if (!email || !password) {
-      toast.error("Please fill in all fields");
+      toast.error("Please fill in all fields", {
+        description: "Login failed.",
+      });
       setIsLoading(false);
       return;
     }
@@ -67,14 +69,24 @@ const Auth = () => {
       const data = await response.json();
 
       if (response.ok) {
-        login(data.token);
-        toast.success("Logged in successfully!");
-        router.push("/dashboard");
+        if (data.token) {
+          login(data.token);
+          toast.success("Logged in successfully!");
+          router.push("/dashboard");
+        } else {
+          toast.error("Authentication token not received.", {
+            description: "Please try logging in again.",
+          });
+        }
       } else {
-        toast.error(data.error || "Invalid email or password");
+        toast.error(data.error || "Invalid email or password", {
+          description: "Login failed.",
+        });
       }
     } catch (error) {
-      toast.error("Failed to connect to the server.");
+      toast.error("Failed to connect to the server.", {
+        description: "Please check your network connection.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -114,6 +126,9 @@ const Auth = () => {
     }
 
     if (hasError) {
+      toast.error("Please correct the errors in the form.", {
+        description: "Signup failed due to validation errors.",
+      });
       setIsLoading(false);
       return;
     }
@@ -130,14 +145,24 @@ const Auth = () => {
       const data = await response.json();
 
       if (response.ok) {
-        login(data.token);
-        toast.success("Account created successfully! You are now logged in.");
-        router.push("/dashboard");
+        if (data.token) {
+          login(data.token);
+          toast.success("Account created successfully! You are now logged in.");
+          router.push("/dashboard");
+        } else {
+          toast.error("Authentication token not received after signup.", {
+            description: "Please try logging in manually.",
+          });
+        }
       } else {
-        toast.error(data.error || "Failed to create account");
+        toast.error(data.error || "Failed to create account", {
+          description: "Signup failed.",
+        });
       }
     } catch (error) {
-      toast.error("Failed to connect to the server.");
+      toast.error("Failed to connect to the server.", {
+        description: "Please check your network connection.",
+      });
     } finally {
       setIsLoading(false);
     }

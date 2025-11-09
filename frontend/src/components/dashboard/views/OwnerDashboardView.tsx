@@ -22,7 +22,7 @@ const OwnerDashboardView = () => {
     const fetchProjectCounts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8000/api/projects/counts', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/counts`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

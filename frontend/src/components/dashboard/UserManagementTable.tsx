@@ -32,7 +32,7 @@ export function UserManagementTable() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -64,7 +64,7 @@ export function UserManagementTable() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/api/users/${userId}/role`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

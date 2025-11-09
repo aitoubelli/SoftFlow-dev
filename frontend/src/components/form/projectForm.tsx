@@ -20,7 +20,7 @@ export default function ProjectForm() {
         }
         setError('')
             setIsSubmitting(true)
-            fetch('http://localhost:8000/api/projects', {
+            fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

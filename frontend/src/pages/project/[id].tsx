@@ -22,7 +22,7 @@ export default function ProjectDetails() {
 
     useEffect(() => {
         if (router.isReady && id && token) {
-            fetch(`http://localhost:8000/api/projects/${id}`, {
+            fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 }
@@ -38,7 +38,7 @@ export default function ProjectDetails() {
                 })
                 .catch((error: Error) => console.error('Error fetching project details:', error));
 
-            fetch('http://localhost:8000/api/users', {
+            fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 }
@@ -54,7 +54,7 @@ export default function ProjectDetails() {
     const handleAssignDevs = async () => {
         if (!token) return;
         try {
-            const res = await fetch(`http://localhost:8000/api/projects/${id}/assign`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}/assign`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

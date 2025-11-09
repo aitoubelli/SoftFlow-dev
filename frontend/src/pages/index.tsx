@@ -1,11 +1,32 @@
 "use client";
 
+import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import heroBackground from "@/assets/hero-background.png";
+import { useAuth } from "@/hooks/useAuth";
 
 const Landing = () => {
   const router = useRouter();
+  const { isAuthenticated, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        Loading...
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null; // Or a loading spinner, as the redirect will happen
+  }
 
   return (
     <div className="min-h-screen relative flex items-center justify-center bg-gradient-to-br from-[#4A00E0] to-[#8E2DE2]">

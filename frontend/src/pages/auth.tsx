@@ -6,6 +6,15 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, loading, router]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
@@ -16,7 +25,6 @@ const Auth = () => {
   const [passwordStrength, setPasswordStrength] = useState("Weak");
   const [activeTab, setActiveTab] = useState("login");
 
-  const router = useRouter();
   const { login } = useAuth();
 
   // Remove client-side user management

@@ -26,17 +26,38 @@ import DeveloperDashboardView from "@/components/dashboard/views/DeveloperDashbo
 import { ROLES } from "@/utils/roles";
 
 const Dashboard = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout, loading } = useAuth();
   const router = useRouter();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  if (!user) {
+  const handleLogout = () => {
+    logout();
+    router.push("/"); // Redirect to home page after logout
+  };
+
+  // Redirect unauthenticated users to the home page
+  if (!loading && !isAuthenticated) {
+    router.push("/");
+    return null; // Prevent rendering the dashboard content
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
         Loading...
       </div>
     );
+  }
+
+  // If user is null but not loading and isAuthenticated is true, it's an unexpected state,
+  // but the redirect above should handle unauthenticated users.
+  // This check ensures `user` is available for rendering the dashboard.
+  if (!user) {
+    // This case should ideally not be reached if the above redirect works,
+    // but as a fallback, we can show a generic error or redirect again.
+    router.push("/");
+    return null;
   }
 
   return (
@@ -80,7 +101,7 @@ const Dashboard = () => {
               <DropdownMenuItem>Paramètres</DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push("/auth")}>Déconnexion</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Déconnexion</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
-  _id: string;
+  id: string; // Changed from _id to id to match decoded token
   name: string;
   email: string;
   role: 'admin' | 'owner' | 'dev';
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           throw new Error("Invalid token format");
         }
         const decoded = JSON.parse(atob(tokenParts[1]));
-        setUser({ _id: decoded.id, name: decoded.name, email: decoded.email, role: decoded.role });
+        setUser({ id: decoded.id, name: decoded.name, email: decoded.email, role: decoded.role });
         setToken(storedToken); // Set token state after successful decode
         console.log("Auth: Token decoded and user set from localStorage.");
       } catch (error) {
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Invalid token format");
       }
       const decoded = JSON.parse(atob(tokenParts[1]));
-      setUser({ _id: decoded.id, name: decoded.name, email: decoded.email, role: decoded.role });
+      setUser({ id: decoded.id, name: decoded.name, email: decoded.email, role: decoded.role });
     } catch (error) {
       console.error("Auth: Failed to decode new token after login.", error);
       logout(); // If new token is invalid, log out

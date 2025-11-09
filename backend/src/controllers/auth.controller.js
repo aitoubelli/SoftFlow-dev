@@ -57,7 +57,7 @@ const getProfile = (req, res) => {
 
 const getAllUsers = async (req, res) => {
     try {
-        const users = await User.find({}, 'name email role'); // Fetch all users and their roles
+        const users = await User.find({}, 'name email role');
 
         const formattedUsers = users.map(user => ({
             _id: user._id,
@@ -99,4 +99,22 @@ const updateUserRole = async (req, res) => {
     }
 };
 
-module.exports = { register, login, getProfile, getAllUsers, updateUserRole };
+const getUserCountsByRole = async (req, res) => {
+    try {
+        const adminCount = await User.countDocuments({ role: 'admin' });
+        const ownerCount = await User.countDocuments({ role: 'owner' });
+        const devCount = await User.countDocuments({ role: 'dev' });
+        const totalUsers = await User.countDocuments();
+
+        res.json({
+            totalUsers,
+            adminCount,
+            ownerCount,
+            devCount,
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Erreur serveur.' });
+    }
+};
+
+module.exports = { register, login, getProfile, getAllUsers, updateUserRole, getUserCountsByRole };

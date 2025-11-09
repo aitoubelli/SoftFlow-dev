@@ -2,9 +2,10 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Shield, Crown, Code } from "lucide-react";
+import { ROLES } from '@/utils/roles';
 
 interface UserRoleBadgeProps {
-  role: 'admin' | 'owner' | 'dev';
+  role: typeof ROLES.ADMIN | typeof ROLES.OWNER | typeof ROLES.DEVELOPER;
 }
 
 export function UserRoleBadge({ role }: UserRoleBadgeProps) {

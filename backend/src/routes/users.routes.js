@@ -5,6 +5,7 @@ const { protect, adminOnly } = require('../middleware/auth.middleware'); // Impo
 
 // Protect all user routes and ensure only admins can access/modify
 router.get('/users', protect, adminOnly, authController.getAllUsers);
+router.get('/users/counts', protect, adminOnly, authController.getUserCountsByRole); // New route for user counts
 router.put('/users/:id/role', protect, adminOnly, authController.updateUserRole);
 
 module.exports = router;

@@ -37,4 +37,12 @@ const adminOrOwnerOnly = (req, res, next) => {
     }
 };
 
-module.exports = { protect, adminOnly, adminOrOwnerOnly };
+const developerOnly = (req, res, next) => {
+    if (req.user && req.user.role === 'dev') {
+        next();
+    } else {
+        res.status(403).json({ error: 'Accès réservé aux développeurs.' });
+    }
+};
+
+module.exports = { protect, adminOnly, adminOrOwnerOnly, developerOnly };

@@ -30,6 +30,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { UserRoleBadge } from "./UserRoleBadge";
 import Dashboard from '../../pages/dashboard';
+import { hasPermission, ROLES, PERMISSIONS } from "@/utils/roles";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -82,16 +83,26 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 href="/dashboard"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:text-primary"
               >
-                <Home className="h-4 w-4" />
-                {!isCollapsed && "Accueil Dashboard"}
-              </Link>
+              <Home className="h-4 w-4" />
+              {!isCollapsed && "Accueil Dashboard"}
+            </Link>
+            <Link
+              href="#"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <Settings className="h-4 w-4" />
+              {!isCollapsed && "Mon Profil"}
+            </Link>
+            {hasPermission(user.role, PERMISSIONS.CAN_MANAGE_PROJECTS) && (
               <Link
-                href="#"
+                href="/addProject"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
-                <Settings className="h-4 w-4" />
-                {!isCollapsed && "Mon Profil"}
+                <Code className="h-4 w-4" />
+                {!isCollapsed && "Créer un Projet"}
               </Link>
+            )}
+            {hasPermission(user.role, PERMISSIONS.CAN_VIEW_ASSIGNED_PROJECTS) && (
               <Link
                 href="/home"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
@@ -99,6 +110,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 <Code className="h-4 w-4" />
                 {!isCollapsed && "Mes Projets"}
               </Link>
+            )}
+            {hasPermission(user.role, PERMISSIONS.CAN_MANAGE_USERS) && (
               <Link
                 href="/users"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
@@ -106,7 +119,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 <Users className="h-4 w-4" />
                 {!isCollapsed && "Gestion des Utilisateurs"}
               </Link>
-            </nav>
+            )}
+          </nav>
           </div>
           <div className="mt-auto p-4">
             {/* Logout button removed as per user request */}
@@ -145,20 +159,33 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               <Settings className="h-5 w-5" />
               Mon de Profil
             </Link>
-            <Link
-              href="/home"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Code className="h-5 w-5" />
-              Mes Projets
-            </Link>
-            <Link
-              href="/users"
-              className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
-            >
-              <Users className="h-5 w-5" />
-              Gestion des Utilisateurs
-            </Link>
+            {hasPermission(user.role, PERMISSIONS.CAN_MANAGE_PROJECTS) && (
+              <Link
+                href="/addProject"
+                className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+              >
+                <Code className="h-5 w-5" />
+                Créer un Projet
+              </Link>
+            )}
+            {hasPermission(user.role, PERMISSIONS.CAN_VIEW_ASSIGNED_PROJECTS) && (
+              <Link
+                href="/home"
+                className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+              >
+                <Code className="h-5 w-5" />
+                Mes Projets
+              </Link>
+            )}
+            {hasPermission(user.role, PERMISSIONS.CAN_MANAGE_USERS) && (
+              <Link
+                href="/users"
+                className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+              >
+                <Users className="h-5 w-5" />
+                Gestion des Utilisateurs
+              </Link>
+            )}
           </nav>
         </SheetContent>
       </Sheet>

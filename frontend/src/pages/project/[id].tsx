@@ -80,10 +80,10 @@ export default function ProjectDetails() {
     }
 
     const memberIds = project.members
-        ? project.members.filter((member: any) => member.user).map((member: any) => member.user._id)
+        ? project.members.filter((member: any) => member.user).map((member: any) => member.user.id)
         : [];
-    const availableUsers = users.filter(u => !memberIds.includes(u._id) && u.role === 'dev'); // Filter to only include 'dev' users not already members
-    const canAssignMembers = user?._id === project.owner?._id || user?.role === 'admin';
+    const availableUsers = Array.isArray(users) ? users.filter(u => !memberIds.includes(u.id) && u.role === 'dev') : []; // Filter to only include 'dev' users not already members
+    const canAssignMembers = user?.id === project.owner?.id || user?.role === 'admin';
 
     return (
         <div className="container mx-auto p-4">
@@ -99,7 +99,7 @@ export default function ProjectDetails() {
                         <h4 className="font-bold mt-4">Members:</h4>
                         <ul>
                             {project.members && project.members.map((member: any) => (
-                                member.user ? <li key={member.user._id}>{member.user.name} ({member.role})</li> : null
+                                member.user ? <li key={member.user.id}>{member.user.name} ({member.role})</li> : null
                             ))}
                         </ul>
                     </div>
@@ -113,7 +113,7 @@ export default function ProjectDetails() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {availableUsers.map(u => (
-                                        <SelectItem key={u._id} value={u._id}>{u.name}</SelectItem>
+                                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

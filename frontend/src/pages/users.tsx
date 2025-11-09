@@ -48,7 +48,7 @@ export default function Users() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
-    if (!token) return; // Ensure token is available before fetching
+    if (!token) return; // ensure token is available before fetching
 
     setLoading(true);
     setError(null);
@@ -91,7 +91,7 @@ export default function Users() {
     if (!token) return;
 
     // Prevent admin from downgrading themselves
-    if (currentUser && currentUser._id === userId && currentUser.role === "admin" && newRole !== "admin") {
+    if (currentUser && currentUser.id === userId && currentUser.role === "admin" && newRole !== "admin") {
       toast.error("You cannot downgrade your own admin role", {
         description: "Admin role modification denied.",
       });
@@ -224,7 +224,7 @@ export default function Users() {
                         <UserRoleBadge role={user.role} />
                       </TableCell>
                       <TableCell>
-                        {currentUser && currentUser._id === user._id && currentUser.role === "admin" ? (
+                        {currentUser && currentUser.id === user._id && currentUser.role === "admin" ? (
                           <Badge variant="outline" className="w-32 justify-center">
                             Impossible de modifier son propre rôle
                           </Badge>

@@ -153,15 +153,14 @@ const Auth = () => {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.token) {
-          login(data.token);
-          toast.success("Account created successfully! You are now logged in.");
-          router.push("/dashboard");
-        } else {
-          toast.error("Authentication token not received after signup.", {
-            description: "Please try logging in manually.",
-          });
-        }
+        toast.success("Inscription réussie !", {
+          description: "Veuillez vous connecter avec vos identifiants.",
+        });
+        setActiveTab("login");
+        // Clear signup form
+        setSignupName("");
+        setSignupEmail("");
+        setSignupPassword("");
       } else {
         toast.error(data.error || "Failed to create account", {
           description: "Signup failed.",

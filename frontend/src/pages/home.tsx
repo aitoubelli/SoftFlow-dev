@@ -34,7 +34,7 @@ export default function Home() {
   const fetchProjects = async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:8000/api/projects", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

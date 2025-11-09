@@ -22,7 +22,7 @@ const DeveloperDashboardView = () => {
     const fetchDeveloperCounts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8000/api/tasks/counts', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/counts`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

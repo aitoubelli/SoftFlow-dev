@@ -26,7 +26,7 @@ export default function ProjectForm() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ name: name.trim(), description, owner: user?._id })
+                body: JSON.stringify({ name: name.trim(), description, owner: user?.id })
             })
                 .then(async (res) => {
                     setIsSubmitting(false)

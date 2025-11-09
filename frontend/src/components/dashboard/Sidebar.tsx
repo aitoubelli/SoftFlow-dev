@@ -104,7 +104,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             )}
             {hasPermission(user.role, PERMISSIONS.CAN_VIEW_ASSIGNED_PROJECTS) && (
               <Link
-                href="/home"
+                href="/projects"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
               >
                 <Code className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             )}
             {hasPermission(user.role, PERMISSIONS.CAN_VIEW_ASSIGNED_PROJECTS) && (
               <Link
-                href="/home"
+                href="/projects"
                 className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
               >
                 <Code className="h-5 w-5" />

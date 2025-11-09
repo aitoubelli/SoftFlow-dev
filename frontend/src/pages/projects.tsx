@@ -115,7 +115,7 @@ export default function Home() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
           <div className="flex items-center justify-between">
-            <Breadcrumbs items={[{ label: "Accueil", href: "/home" }, { label: "Mes Projets", href: "/home" }]} />
+            <Breadcrumbs items={[{ label: "Accueil", href: "/projects" }, { label: "Mes Projets", href: "/projects" }]} />
             {user && (user.role === 'admin' || user.role === 'owner') && (
                 <button className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-md text-sm" onClick={() => router.push("/addProject")}>
                     Ajouter un Projet

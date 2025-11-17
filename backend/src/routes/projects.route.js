@@ -3,7 +3,6 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Project = require('../models/Project.model');
 const projectController = require('../controllers/project.controller'); // Import project controller
-const issueController = require('../controllers/issue.controller'); // Import issue controller
 
 const { protect, adminOrOwnerOnly } = require('../middleware/auth.middleware');
 
@@ -44,7 +43,7 @@ router.post('/', protect, adminOrOwnerOnly, async (req, res) => {
         }
 
         // validate owner if provided: must be a valid ObjectId
-        let ownerId = req.user._id; // default to current user
+        let ownerId = undefined
         if (owner) {
             if (mongoose.Types.ObjectId.isValid(owner)) {
                 ownerId = owner
@@ -105,10 +104,6 @@ router.post('/:id/assign', protect, adminOrOwnerOnly, async (req, res) => {
             return res.status(400).json({ error: 'La liste des utilisateurs est requise.' });
         }
 
-        if (!userIds.every(id => mongoose.Types.ObjectId.isValid(id))) {
-            return res.status(400).json({ error: 'Un ou plusieurs IDs utilisateur non valides.' });
-        }
-
         const project = await Project.findById(id);
         if (!project) {
             return res.status(404).json({ error: 'Projet non trouvé.' });
@@ -136,46 +131,6 @@ router.post('/:id/assign', protect, adminOrOwnerOnly, async (req, res) => {
     } catch (err) {
         console.error('Erreur assignation utilisateur au projet:', err);
         return res.status(500).json({ error: 'Erreur serveur lors de l\'assignation.' });
-    }
-});
-
-// Create an issue for a project
-router.post('/:projectId/issues', protect, issueController.createIssue);
-
-// Unassign a user from a project
-router.post('/:id/unassign', protect, adminOrOwnerOnly, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { userId } = req.body;
-
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ error: 'ID de projet non valide.' });
-        }
-
-        if (!userId) {
-            return res.status(400).json({ error: 'ID utilisateur requis.' });
-        }
-
-        const project = await Project.findById(id);
-        if (!project) {
-            return res.status(404).json({ error: 'Projet non trouvé.' });
-        }
-
-        // Find and remove the member
-        const initialLength = project.members.length;
-        project.members = project.members.filter(member => member.user.toString() !== userId);
-
-        if (project.members.length === initialLength) {
-            return res.status(404).json({ error: 'Utilisateur non trouvé dans ce projet.' });
-        }
-
-        await project.save();
-
-        const updatedProject = await Project.findById(id).populate('owner').populate('members.user');
-        return res.status(200).json(updatedProject);
-    } catch (err) {
-        console.error('Erreur désassignation utilisateur du projet:', err);
-        return res.status(500).json({ error: 'Erreur serveur lors de la désassignation.' });
     }
 });
 

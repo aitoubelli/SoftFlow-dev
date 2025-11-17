@@ -18,7 +18,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
       return [homeItem];
     }
 
-    if (items[0].label === "Home" && items[0].href === "/projects") {
+    if (items[0].label === "Home" && items[0].href === "/home") {
       return [homeItem, ...items.slice(1)];
     }
 

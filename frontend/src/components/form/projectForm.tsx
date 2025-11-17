@@ -20,13 +20,13 @@ export default function ProjectForm() {
         }
         setError('')
             setIsSubmitting(true)
-            fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`, {
+            fetch('http://localhost:8000/api/projects', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ name: name.trim(), description, owner: user?.id })
+                body: JSON.stringify({ name: name.trim(), description, owner: user?._id })
             })
                 .then(async (res) => {
                     setIsSubmitting(false)
@@ -40,7 +40,7 @@ export default function ProjectForm() {
                     // reset
                     setName('')
                     setDescription('')
-                    router.push('/projects')
+                    router.push('/home')
                 })
                 .catch((err) => {
                     console.error('Erreur création projet:', err)

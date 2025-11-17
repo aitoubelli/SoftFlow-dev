@@ -4,25 +4,25 @@ const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
     try {
-        // accept either `name` or `username` (compatibility with tests/clients)
+        // accepter soit `name` soit `username` (compatibilité avec les tests/clients)
         const { username, name, email, password } = req.body;
         const displayName = name || username;
 
         if (!displayName || !email || !password) {
-            return res.status(400).json({ error: 'Missing fields.' });
+            return res.status(400).json({ error: 'Champs manquants.' });
         }
 
-        // Check if email already exists
+        // Vérifier si l'email existe déjà
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: 'This email is already in use.' });
+            return res.status(400).json({ error: 'Cet email est déjà utilisé.' });
         }
 
-        // Create user (default role 'dev')
+        // Créer l'utilisateur (rôle 'dev' par défaut)
         const user = new User({ name: displayName, email, password, role: 'dev' });
         await user.save();
 
-        // Do not return password
+        // Ne pas renvoyer le mot de passe
         const { password: _, ...userResponse } = user.toObject();
         res.status(201).json(userResponse);
     } catch (err) {

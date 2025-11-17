@@ -22,7 +22,7 @@ const OwnerDashboardView = () => {
     const fetchProjectCounts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/counts`, {
+        const response = await fetch('http://localhost:8000/api/projects/counts', {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -137,7 +137,7 @@ const OwnerDashboardView = () => {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">Modifier ou supprimer des projets existants.</p>
-              <Link href="/projects">
+              <Link href="/home">
                 <button className="mt-4 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2">
                   Gérer Projets
                 </button>

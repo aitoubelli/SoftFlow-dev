@@ -14,7 +14,7 @@ const softFlowVersion = "0.5.0";
   useEffect(() => {
     const checkApiHealth = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/health`);
+        const response = await fetch("http://localhost:8000/api/health");
         if (response.ok) {
           setApiHealth("ok");
         } else {

@@ -105,6 +105,10 @@ router.post('/:id/assign', protect, adminOrOwnerOnly, async (req, res) => {
             return res.status(400).json({ error: 'La liste des utilisateurs est requise.' });
         }
 
+        if (!userIds.every(id => mongoose.Types.ObjectId.isValid(id))) {
+            return res.status(400).json({ error: 'Un ou plusieurs IDs utilisateur non valides.' });
+        }
+
         const project = await Project.findById(id);
         if (!project) {
             return res.status(404).json({ error: 'Projet non trouvé.' });

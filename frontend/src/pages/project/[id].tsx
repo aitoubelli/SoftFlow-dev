@@ -2,6 +2,8 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import {
     Select,
     SelectContent,
@@ -22,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, CircleUser, LayoutDashboard, Menu } from "lucide-react";
+import { Bell, CircleUser, LayoutDashboard, Menu, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import Link from 'next/link';
@@ -34,6 +36,9 @@ export default function ProjectDetails() {
     const [users, setUsers] = useState<any[]>([]);
     const [selectedDevs, setSelectedDevs] = useState<string[]>([]);
     const [showCreateIssue, setShowCreateIssue] = useState(false);
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [modalSelectedDevs, setModalSelectedDevs] = useState<string[]>([]);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { token, user, logout } = useAuth();
 
@@ -60,11 +65,20 @@ export default function ProjectDetails() {
                     'Authorization': `Bearer ${token}`,
                 }
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     setUsers(data);
                 })
-                .catch((error: Error) => console.error('Error fetching users:', error));
+                .catch((error: Error) => {
+                    console.error('Error fetching users:', error);
+                    // Set empty array to avoid breaking the UI
+                    setUsers([]);
+                });
         }
     }, [id, token, router.isReady]);
 
@@ -199,10 +213,11 @@ export default function ProjectDetails() {
     }
 
     const memberIds = project.members
-        ? project.members.filter((member: any) => member.user).map((member: any) => member.user.id)
+        ? project.members.filter((member: any) => member.user).map((member: any) => member.user._id)
         : [];
-    const availableUsers = Array.isArray(users) ? users.filter(u => !memberIds.includes(u.id) && u.role === 'dev') : [];
-    const canAssignMembers = user?.id === project.owner?.id || user?.role === 'admin';
+    const availableUsers = Array.isArray(users) ? users.filter(u => !memberIds.includes(u._id) && u.role === 'dev') : [];
+    const canAssignMembers = user?.id === project.owner?.id || user?.role === 'admin' || user?.role === 'owner';
+
 
     return (
         <div className="flex min-h-screen w-full">
@@ -249,52 +264,122 @@ export default function ProjectDetails() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>
-                <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
+                <main className="flex flex-1 flex-col gap-6 p-6 lg:p-8 overflow-auto pb-20 lg:pb-[60px] bg-gradient-to-br from-background via-background to-primary/5">
+                    {/* Header Section */}
                     <div className="flex items-center justify-between">
                         <Breadcrumbs items={[
                             { label: "Accueil", href: "/dashboard" },
                             { label: "Mes Projets", href: "/projects" },
                             { label: project.name, href: `/project/${id}` }
                         ]} />
-                        <Button variant="outline" onClick={() => router.back()} className="ml-auto">
-                            Retour
-                        </Button>
+                        <div className="flex gap-3">
+                            {user?.id === project.owner?.id && (
+                                <Button onClick={() => setShowCreateIssue(true)} className="bg-primary hover:bg-primary/90">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Créer une issue
+                                </Button>
+                            )}
+                            <Button variant="outline" onClick={() => router.back()}>
+                                Retour
+                            </Button>
+                        </div>
                     </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{project.name}</CardTitle>
-                            <CardDescription>{project.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div>
-                                    <p className="text-sm font-medium">Propriétaire:</p>
-                                    <p className="text-sm text-muted-foreground">{project.owner ? project.owner.name : 'Non assigné'}</p>
+                    {/* Project Overview Card */}
+                    <Card className="shadow-elegant border-0 bg-gradient-to-r from-card to-card/95">
+                        <CardHeader className="pb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-primary/10 rounded-xl">
+                                    <FolderOpen className="h-6 w-6 text-primary" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium">Créé le:</p>
-                                    <p className="text-sm text-muted-foreground">{new Date(project.createdAt).toLocaleDateString()}</p>
+                                    <CardTitle className="text-2xl font-bold">{project.name}</CardTitle>
+                                    <CardDescription className="text-base mt-1">{project.description}</CardDescription>
                                 </div>
                             </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-6 md:grid-cols-3">
+                                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                                    <div className="p-2 bg-primary/10 rounded-lg">
+                                        <CircleUser className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Propriétaire</p>
+                                        <p className="font-semibold">{project.owner ? project.owner.name : 'Non assigné'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                                    <div className="p-2 bg-primary/10 rounded-lg">
+                                        <Calendar className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Créé le</p>
+                                        <p className="font-semibold">{new Date(project.createdAt).toLocaleDateString('fr-FR')}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                                    <div className="p-2 bg-primary/10 rounded-lg">
+                                        <Users className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Membres</p>
+                                        <p className="font-semibold">{project.members?.length || 0} développeur(s)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                            <div className="mt-6">
-                                <h4 className="font-bold mb-3">Membres du projet:</h4>
+                    {/* Team Management Section */}
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        {/* Current Team Members */}
+                        <Card className="shadow-card">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 rounded-lg">
+                                            <Users className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <CardTitle>Équipe actuelle</CardTitle>
+                                    </div>
+                                    {canAssignMembers && (
+                                        <Button
+                                            onClick={() => setShowAssignModal(true)}
+                                            className="bg-primary hover:bg-primary/90"
+                                            size="sm"
+                                        >
+                                            <UserPlus className="h-4 w-4 mr-2" />
+                                            Ajouter
+                                        </Button>
+                                    )}
+                                </div>
+                            </CardHeader>
+                            <CardContent>
                                 {project.members && project.members.length > 0 ? (
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         {project.members.map((member: any) => (
                                             member.user ? (
-                                                <div key={member.user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                                                    <div>
-                                                        <p className="font-medium">{member.user.name}</p>
-                                                        <p className="text-sm text-muted-foreground">Rôle: {member.role}</p>
+                                                <div key={member.user._id} className="flex items-center justify-between p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                                            <CircleUser className="h-5 w-5 text-primary" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium">{member.user.name}</p>
+                                                            <Badge variant="secondary" className="text-xs">
+                                                                {member.role}
+                                                            </Badge>
+                                                        </div>
                                                     </div>
                                                     {canAssignMembers && member.role === 'dev' && (
                                                         <Button
-                                                            variant="destructive"
+                                                            variant="outline"
                                                             size="sm"
-                                                            onClick={() => handleUnassignDev(member.user.id)}
+                                                            onClick={() => handleUnassignDev(member.user._id)}
+                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                                         >
+                                                            <UserMinus className="h-4 w-4 mr-2" />
                                                             Retirer
                                                         </Button>
                                                     )}
@@ -303,50 +388,53 @@ export default function ProjectDetails() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-sm text-muted-foreground">Aucun membre assigné</p>
+                                    <div className="text-center py-8">
+                                        <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                        <p className="text-muted-foreground">Aucun membre assigné</p>
+                                        <p className="text-sm text-muted-foreground mt-1">
+                                            Commencez par ajouter des développeurs à votre projet
+                                        </p>
+                                    </div>
                                 )}
-                            </div>
+                            </CardContent>
+                        </Card>
 
-                            {/* Create Issue Button - Only for owner */}
-                            {user?.id === project.owner?.id && (
-                                <div className="mt-6">
-                                    <Button onClick={() => setShowCreateIssue(true)} className="w-full">
-                                        Créer une issue
+                        {/* Project Actions */}
+                        <Card className="shadow-card">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                    <Settings className="h-5 w-5 text-primary" />
+                                    Actions du projet
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {user?.id === project.owner?.id && (
+                                    <Button
+                                        onClick={() => setShowCreateIssue(true)}
+                                        className="w-full justify-start bg-primary hover:bg-primary/90"
+                                    >
+                                        <Plus className="h-4 w-4 mr-3" />
+                                        Créer une nouvelle issue
                                     </Button>
+                                )}
+
+                                <div className="pt-4 border-t">
+                                    <p className="text-sm text-muted-foreground mb-2">Informations</p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                                        <strong>ID du projet:</strong> {id}
+                                    </div>
                                 </div>
-                            )}
-                        </CardContent>
-                        <CardFooter className="flex justify-between">
-                            {canAssignMembers && (
-                                <div className="flex gap-2 flex-wrap">
-                                    <Select onValueChange={(value: string | undefined) => setSelectedDevs(value ? [value] : [])}>
-                                        <SelectTrigger className="w-[180px]">
-                                            <SelectValue placeholder="Assigner un développeur" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableUsers.map(u => (
-                                                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <Button onClick={handleAssignDevs} disabled={selectedDevs.length === 0}>
-                                        Assigner
-                                    </Button>
-                                </div>
-                            )}
-                            <div className="text-sm text-muted-foreground">
-                                ID: {id}
-                            </div>
-                        </CardFooter>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </main>
                 <DashboardFooter isCollapsed={isCollapsed} />
             </div>
 
             {/* Create Issue Modal */}
             {showCreateIssue && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <CreateIssueForm
                             projectId={id as string}
                             onSuccess={() => {
@@ -355,6 +443,188 @@ export default function ProjectDetails() {
                             }}
                             onCancel={() => setShowCreateIssue(false)}
                         />
+                    </div>
+                </div>
+            )}
+
+            {/* Assign Developers Modal */}
+            {showAssignModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-lg w-full max-h-[90vh] overflow-hidden">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-primary/10 rounded-lg">
+                                    <UserPlus className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold">Assigner des développeurs</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Sélectionnez les développeurs à ajouter au projet
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Search Bar */}
+                            <div className="relative mb-4">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <input
+                                    type="text"
+                                    placeholder="Rechercher un développeur..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                />
+                            </div>
+
+                            {/* Select All/Unselect All */}
+                            {availableUsers.length > 0 && (
+                                <div className="flex gap-2 mb-4">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setModalSelectedDevs(availableUsers.map(u => u._id))}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <CheckSquare className="h-4 w-4" />
+                                        Tout sélectionner
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setModalSelectedDevs([])}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Square className="h-4 w-4" />
+                                        Tout désélectionner
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Developers List */}
+                            <div className="space-y-2 max-h-80 overflow-y-auto">
+                                {(() => {
+                                    const filteredUsers = availableUsers.filter(user =>
+                                        user.name.toLowerCase().includes(searchQuery.toLowerCase())
+                                    );
+
+                                    return filteredUsers.length > 0 ? (
+                                        filteredUsers.map(user => (
+                                            <div key={user._id} className="flex items-center space-x-3 p-3 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                                                <Checkbox
+                                                    id={`user-${user._id}`}
+                                                    checked={modalSelectedDevs.includes(user._id)}
+                                                    onCheckedChange={(checked) => {
+                                                        setModalSelectedDevs(prev => {
+                                                            if (checked === true) {
+                                                                // Add user if not already selected
+                                                                if (!prev.includes(user._id)) {
+                                                                    return [...prev, user._id];
+                                                                }
+                                                                return prev;
+                                                            } else {
+                                                                // Remove user
+                                                                return prev.filter(id => id !== user._id);
+                                                            }
+                                                        });
+                                                    }}
+                                                />
+                                                <label
+                                                    htmlFor={`user-${user._id}`}
+                                                    className="flex items-center gap-3 flex-1 cursor-pointer"
+                                                >
+                                                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                                        <CircleUser className="h-4 w-4 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-sm">{user.name}</p>
+                                                        <Badge variant="outline" className="text-xs">
+                                                            {user.role}
+                                                        </Badge>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                                            <p className="text-sm text-muted-foreground">
+                                                {searchQuery ? 'Aucun développeur trouvé' : 'Aucun développeur disponible'}
+                                            </p>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* Selected Count */}
+                            {modalSelectedDevs.length > 0 && (
+                                <div className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                    <p className="text-sm text-primary font-medium">
+                                        {modalSelectedDevs.length} développeur(s) sélectionné(s)
+                                    </p>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3 mt-6 pt-4 border-t">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowAssignModal(false);
+                                        setModalSelectedDevs([]);
+                                        setSearchQuery('');
+                                    }}
+                                    className="flex-1"
+                                >
+                                    Annuler
+                                </Button>
+                                <Button
+                                    onClick={async () => {
+                                        // Directly assign using modalSelectedDevs
+                                        if (!token || modalSelectedDevs.length === 0) return;
+
+                                        try {
+                                            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}/assign`, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Authorization': `Bearer ${token}`,
+                                                },
+                                                body: JSON.stringify({ userIds: modalSelectedDevs }),
+                                            });
+
+                                            if (!res.ok) {
+                                                throw new Error('Failed to assign developers');
+                                            }
+
+                                            const updatedProject = await res.json();
+                                            setProject(updatedProject);
+                                            setShowAssignModal(false);
+                                            setModalSelectedDevs([]);
+                                            setSearchQuery('');
+                                            toast.success("Developer(s) assigned successfully!");
+
+                                            // Refresh the page data to reflect changes
+                                            fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}`, {
+                                                headers: {
+                                                    'Authorization': `Bearer ${token}`,
+                                                }
+                                            })
+                                                .then(res => res.json())
+                                                .then(data => {
+                                                    setProject(data);
+                                                })
+                                                .catch((error: Error) => console.error('Error refreshing project details:', error));
+                                        } catch (error: any) {
+                                            console.error('Error assigning developers:', error);
+                                            toast.error(error.message || "Failed to assign developer(s).");
+                                        }
+                                    }}
+                                    disabled={modalSelectedDevs.length === 0}
+                                    className="flex-1 bg-primary hover:bg-primary/90"
+                                >
+                                    Assigner ({modalSelectedDevs.length})
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

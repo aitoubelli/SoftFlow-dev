@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import CreateIssueForm from '@/components/form/CreateIssueForm';
+import IssuesList from '@/components/project/IssuesList';
 import EditIssueForm from '@/components/form/EditIssueForm';
 import CreateTaskForm from '@/components/form/CreateTaskForm';
 import TaskList from '@/components/task/TaskList';
@@ -44,6 +45,8 @@ export default function ProjectDetails() {
     const [searchQuery, setSearchQuery] = useState('');
     const [modalSelectedDevs, setModalSelectedDevs] = useState<string[]>([]);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [issuesRefreshKey, setIssuesRefreshKey] = useState(0);
+    const issuesRefreshFnRef = useRef<(() => void) | null>(null);
     const [editingIssue, setEditingIssue] = useState<any>(null);
     const [showCreateTask, setShowCreateTask] = useState(false);
     const [taskIssue, setTaskIssue] = useState<any>(null);
@@ -288,6 +291,7 @@ export default function ProjectDetails() {
     const availableUsers = Array.isArray(users) ? users.filter(u => !memberIds.includes(u._id) && u.role === 'dev') : [];
     const canAssignMembers = user?.id === project.owner?._id || user?.role === 'admin' || user?.role === 'owner';
 
+
     return (
         <div className="flex min-h-screen w-full">
             <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -498,6 +502,13 @@ export default function ProjectDetails() {
                     </div>
 
                     {/* Issues Section */}
+                    <div className="mt-6">
+                        <IssuesList 
+                            projectId={project._id} 
+                            isOwner={user?.id === project.owner?._id}
+                            refreshTrigger={issuesRefreshKey}
+                        />
+                    </div>
                     <Card className="shadow-card">
                         <CardHeader>
                             <div className="flex items-center justify-between">
@@ -635,13 +646,14 @@ export default function ProjectDetails() {
             </div>
 
             {/* Create Issue Modal */}
-            {showCreateIssue && (
+            {showCreateIssue && project && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <CreateIssueForm
-                            projectId={id as string}
+                            projectId={project._id}
                             onSuccess={() => {
                                 setShowCreateIssue(false);
+                                setIssuesRefreshKey(prev => prev + 1);
                                 fetchIssues();
                             }}
                             onCancel={() => setShowCreateIssue(false)}
@@ -738,7 +750,7 @@ export default function ProjectDetails() {
                                                 <Checkbox
                                                     id={`user-${user._id}`}
                                                     checked={modalSelectedDevs.includes(user._id)}
-                                                    onCheckedChange={(checked) => {
+                                                    onCheckedChange={(checked: boolean) => {
                                                         setModalSelectedDevs(prev => {
                                                             if (checked === true) {
                                                                 // Add user if not already selected

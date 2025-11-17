@@ -10,15 +10,24 @@ const issueSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    projectId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Project',
-        required: true
-    },
     status: {
         type: String,
         enum: ['open', 'closed'],
         default: 'open'
+    },
+    project: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Project',
+        required: true
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    closedAt: {
+        type: Date,
+        default: null
     }
 }, {
     timestamps: true

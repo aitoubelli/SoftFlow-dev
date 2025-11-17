@@ -30,13 +30,14 @@ export default function CreateIssueForm({ projectId, onSuccess, onCancel }: Crea
         setIsSubmitting(true)
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectId}/issues`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/issues`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
+                    projectId: projectId,
                     title: title.trim(),
                     description: description.trim()
                 })

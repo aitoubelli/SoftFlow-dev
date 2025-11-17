@@ -31,18 +31,28 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import ProjectForm from "@/components/form/projectForm";
 
 export default function Home() {
   const { user, token, logout, isAuthenticated } = useAuth();
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/auth");
     }
   }, [isAuthenticated, router]);
+
+  const refreshProjects = () => {
+    fetchProjects().then((data) => {
+      if (data) {
+        setProjects(data);
+      }
+    });
+  };
 
   const fetchProjects = async () => {
     if (!token) return;
@@ -149,8 +159,8 @@ export default function Home() {
             <Breadcrumbs items={[{ label: "Accueil", href: "/projects" }, { label: "Mes Projets", href: "/projects" }]} />
             {user && (user.role === 'admin' || user.role === 'owner') && (
               <Button
-                onClick={() => router.push("/addProject")}
-                className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
+                onClick={() => setIsProjectModalOpen(true)}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 font-medium"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Ajouter un Projet
@@ -180,8 +190,8 @@ export default function Home() {
               </div>
               {user && (user.role === 'admin' || user.role === 'owner') && (
                 <Button
-                  onClick={() => router.push("/addProject")}
-                  className="bg-gradient-to-r from-primary to-primary-glow hover:from-primary/90 hover:to-primary-glow/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
+                  onClick={() => setIsProjectModalOpen(true)}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Créer votre premier projet
@@ -246,6 +256,19 @@ export default function Home() {
           )}
         </main>
         <DashboardFooter isCollapsed={isCollapsed} />
+
+        {/* Create Project Modal */}
+        <Sheet open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-lg">
+            <ProjectForm
+              onSuccess={() => {
+                setIsProjectModalOpen(false);
+                refreshProjects();
+              }}
+              onCancel={() => setIsProjectModalOpen(false)}
+            />
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

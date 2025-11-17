@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import CreateIssueForm from '@/components/form/CreateIssueForm';
+import IssuesList from '@/components/project/IssuesList';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter';
 import {
@@ -40,6 +41,8 @@ export default function ProjectDetails() {
     const [searchQuery, setSearchQuery] = useState('');
     const [modalSelectedDevs, setModalSelectedDevs] = useState<string[]>([]);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [issuesRefreshKey, setIssuesRefreshKey] = useState(0);
+    const issuesRefreshFnRef = useRef<(() => void) | null>(null);
     const { token, user, logout } = useAuth();
 
     useEffect(() => {
@@ -216,7 +219,7 @@ export default function ProjectDetails() {
         ? project.members.filter((member: any) => member.user).map((member: any) => member.user._id)
         : [];
     const availableUsers = Array.isArray(users) ? users.filter(u => !memberIds.includes(u._id) && u.role === 'dev') : [];
-    const canAssignMembers = user?.id === project.owner?.id || user?.role === 'admin' || user?.role === 'owner';
+    const canAssignMembers = user?.id === project.owner?._id || user?.role === 'admin' || user?.role === 'owner';
 
 
     return (
@@ -273,7 +276,7 @@ export default function ProjectDetails() {
                             { label: project.name, href: `/project/${id}` }
                         ]} />
                         <div className="flex gap-3">
-                            {user?.id === project.owner?.id && (
+                            {user?.id === project.owner?._id && (
                                 <Button onClick={() => setShowCreateIssue(true)} className="bg-primary hover:bg-primary/90">
                                     <Plus className="h-4 w-4 mr-2" />
                                     Créer une issue
@@ -408,7 +411,7 @@ export default function ProjectDetails() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {user?.id === project.owner?.id && (
+                                {user?.id === project.owner?._id && (
                                     <Button
                                         onClick={() => setShowCreateIssue(true)}
                                         className="w-full justify-start bg-primary hover:bg-primary/90"
@@ -427,19 +430,28 @@ export default function ProjectDetails() {
                             </CardContent>
                         </Card>
                     </div>
+
+                    {/* Issues Section */}
+                    <div className="mt-6">
+                        <IssuesList 
+                            projectId={project._id} 
+                            isOwner={user?.id === project.owner?._id}
+                            refreshTrigger={issuesRefreshKey}
+                        />
+                    </div>
                 </main>
                 <DashboardFooter isCollapsed={isCollapsed} />
             </div>
 
             {/* Create Issue Modal */}
-            {showCreateIssue && (
+            {showCreateIssue && project && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <CreateIssueForm
-                            projectId={id as string}
+                            projectId={project._id}
                             onSuccess={() => {
                                 setShowCreateIssue(false);
-                                // Optionally refresh project data here
+                                setIssuesRefreshKey(prev => prev + 1);
                             }}
                             onCancel={() => setShowCreateIssue(false)}
                         />
@@ -513,7 +525,7 @@ export default function ProjectDetails() {
                                                 <Checkbox
                                                     id={`user-${user._id}`}
                                                     checked={modalSelectedDevs.includes(user._id)}
-                                                    onCheckedChange={(checked) => {
+                                                    onCheckedChange={(checked: boolean) => {
                                                         setModalSelectedDevs(prev => {
                                                             if (checked === true) {
                                                                 // Add user if not already selected

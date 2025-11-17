@@ -1,59 +1,114 @@
 const Issue = require('../models/Issue.model');
 const Project = require('../models/Project.model');
-const mongoose = require('mongoose');
 
-const createIssue = async (req, res) => {
+// Get all issues for a project
+const getIssuesByProject = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const { title, description } = req.body;
 
-        // Validate projectId
-        if (!mongoose.Types.ObjectId.isValid(projectId)) {
-            return res.status(400).json({ error: 'ID de projet non valide.' });
-        }
-
-        // Check if project exists and user is the owner
+        // Check if project exists
         const project = await Project.findById(projectId);
         if (!project) {
-            return res.status(404).json({ error: 'Projet non trouvé.' });
+            return res.status(404).json({ error: 'Project not found.' });
         }
 
-        if (project.owner.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent créer des issues.' });
+        const issues = await Issue.find({ project: projectId })
+            .populate('createdBy', 'name email')
+            .sort({ createdAt: -1 });
+
+        res.json(issues);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Create a new issue
+const createIssue = async (req, res) => {
+    try {
+        const { title, description, projectId } = req.body;
+
+        // Check if project exists
+        const project = await Project.findById(projectId);
+        
+        if (!project) {
+            return res.status(404).json({ error: 'Project not found.' });
         }
 
-        // Validate required fields
-        if (!title || !title.trim()) {
-            return res.status(400).json({ error: 'Le titre de l\'issue est requis.' });
-        }
-
-        // Create the issue
         const issue = new Issue({
-            title: title.trim(),
-            description: description || '',
-            projectId: projectId
+            title,
+            description,
+            project: projectId,
+            createdBy: req.user._id,
+            status: 'open'
         });
 
         await issue.save();
+        await issue.populate('createdBy', 'name email');
 
-        // Return the created issue without sensitive _id
-        const issueResponse = {
-            id: issue._id,
-            title: issue.title,
-            description: issue.description,
-            status: issue.status,
-            projectId: issue.projectId,
-            createdAt: issue.createdAt,
-            updatedAt: issue.updatedAt
-        };
-
-        return res.status(201).json(issueResponse);
+        res.status(201).json(issue);
     } catch (err) {
-        console.error('Erreur création issue:', err);
-        return res.status(500).json({ error: 'Erreur serveur lors de la création de l\'issue.' });
+        res.status(400).json({ error: err.message });
+    }
+};
+
+// Update an issue (especially to close it)
+const updateIssue = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, title, description } = req.body;
+
+        const issue = await Issue.findById(id).populate('project');
+        if (!issue) {
+            return res.status(404).json({ error: 'Issue not found.' });
+        }
+
+        // Check if user is the project owner
+        if (issue.project.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'Only the project owner can modify issues.' });
+        }
+
+        // Update fields
+        if (title) issue.title = title;
+        if (description !== undefined) issue.description = description;
+        if (status) {
+            issue.status = status;
+            issue.closedAt = status === 'closed' ? new Date() : null;
+        }
+
+        await issue.save();
+        await issue.populate('createdBy', 'name email');
+
+        res.json(issue);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+// Delete an issue
+const deleteIssue = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const issue = await Issue.findById(id).populate('project');
+        if (!issue) {
+            return res.status(404).json({ error: 'Issue not found.' });
+        }
+
+        // Check if user is the project owner
+        if (issue.project.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'Only the project owner can delete issues.' });
+        }
+
+        await Issue.findByIdAndDelete(id);
+        res.json({ message: 'Issue deleted successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 };
 
 module.exports = {
+    getIssuesByProject,
     createIssue,
+    updateIssue,
+    deleteIssue
 };

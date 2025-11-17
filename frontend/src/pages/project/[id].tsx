@@ -15,6 +15,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import CreateIssueForm from '@/components/form/CreateIssueForm';
 import EditIssueForm from '@/components/form/EditIssueForm';
+import CreateTaskForm from '@/components/form/CreateTaskForm';
+import TaskList from '@/components/task/TaskList';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter';
 import {
@@ -25,7 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, CircleUser, LayoutDashboard, Menu, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square, FileText, Edit, Trash2, MoreVertical } from "lucide-react";
+import { Bell, CircleUser, LayoutDashboard, Menu, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square, FileText, Edit, Trash2, MoreVertical, CheckSquare as TaskIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import Link from 'next/link';
@@ -43,6 +45,8 @@ export default function ProjectDetails() {
     const [modalSelectedDevs, setModalSelectedDevs] = useState<string[]>([]);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [editingIssue, setEditingIssue] = useState<any>(null);
+    const [showCreateTask, setShowCreateTask] = useState(false);
+    const [taskIssue, setTaskIssue] = useState<any>(null);
     const { token, user, logout } = useAuth();
 
     const fetchIssues = async () => {
@@ -283,7 +287,6 @@ export default function ProjectDetails() {
         : [];
     const availableUsers = Array.isArray(users) ? users.filter(u => !memberIds.includes(u._id) && u.role === 'dev') : [];
     const canAssignMembers = user?.id === project.owner?._id || user?.role === 'admin' || user?.role === 'owner';
-
 
     return (
         <div className="flex min-h-screen w-full">
@@ -538,6 +541,16 @@ export default function ProjectDetails() {
                                                     <p className="text-xs text-muted-foreground">
                                                         Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
                                                     </p>
+
+                                                    {/* Task List Component */}
+                                                    <TaskList
+                                                        projectId={id as string}
+                                                        issueId={issue._id}
+                                                        issueTitle={issue.title}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
+                                                    </p>
                                                 </div>
                                                 {(user?.id === project.owner?._id || user?.role === 'admin') && (
                                                     <div className="flex items-center gap-2">
@@ -560,6 +573,18 @@ export default function ProjectDetails() {
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem
+                                                                    onClick={() => {
+                                                                        setTaskIssue(issue);
+                                                                        setShowCreateTask(true);
+                                                                    }}
+                                                                    className={`cursor-pointer ${issue.status === 'closed' ? 'opacity-50 pointer-events-none' : ''}`}
+                                                                    disabled={issue.status === 'closed'}
+                                                                >
+                                                                    <TaskIcon className="h-4 w-4 mr-2" />
+                                                                    {issue.status === 'closed' ? 'Créer une tâche (Issue fermée)' : 'Créer une tâche'}
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
                                                                 <DropdownMenuItem
                                                                     onClick={() => setEditingIssue(issue)}
                                                                     className="cursor-pointer"
@@ -620,6 +645,28 @@ export default function ProjectDetails() {
                                 fetchIssues();
                             }}
                             onCancel={() => setShowCreateIssue(false)}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Create Task Modal */}
+            {showCreateTask && taskIssue && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <CreateTaskForm
+                            projectId={id as string}
+                            issueId={taskIssue._id}
+                            issueTitle={taskIssue.title}
+                            issueStatus={taskIssue.status}
+                            onSuccess={() => {
+                                setShowCreateTask(false);
+                                setTaskIssue(null);
+                            }}
+                            onCancel={() => {
+                                setShowCreateTask(false);
+                                setTaskIssue(null);
+                            }}
                         />
                     </div>
                 </div>

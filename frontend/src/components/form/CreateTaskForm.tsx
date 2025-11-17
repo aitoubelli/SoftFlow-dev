@@ -96,11 +96,11 @@ export default function CreateTaskForm({ projectId, issueId, issueTitle, issueSt
     const isIssueClosed = issueStatus === 'closed';
 
     return (
-        <div className="space-y-6">
+        <div className="p-6 space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${isIssueClosed ? 'bg-muted' : 'bg-primary/10'}`}>
+                    <div className={`p-2 rounded-lg ${isIssueClosed ? 'bg-muted/50' : 'bg-primary/10'}`}>
                         {isIssueClosed ? (
                             <Lock className="h-5 w-5 text-muted-foreground" />
                         ) : (
@@ -125,27 +125,27 @@ export default function CreateTaskForm({ projectId, issueId, issueTitle, issueSt
                     variant="ghost"
                     size="icon"
                     onClick={onCancel}
-                    className="shrink-0"
+                    className="shrink-0 hover:bg-muted/50"
                 >
                     <X className="h-4 w-4" />
                 </Button>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 {isIssueClosed ? (
-                    <div className="p-4 bg-muted/50 border border-muted rounded-lg">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <Lock className="h-4 w-4" />
-                            <p className="text-sm">
+                    <div className="p-4 bg-muted/30 border border-destructive/20 rounded-lg">
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                            <Lock className="h-5 w-5 flex-shrink-0" />
+                            <p className="text-sm leading-relaxed">
                                 Impossible de créer une tâche pour une issue fermée. Veuillez d'abord rouvrir l'issue.
                             </p>
                         </div>
                     </div>
                 ) : (
                     <>
-                        <div className="space-y-2">
-                            <label htmlFor="title" className="text-sm font-medium">
+                        <div className="space-y-3">
+                            <label htmlFor="title" className="text-sm font-medium text-foreground">
                                 Titre de la tâche *
                             </label>
                             <Input
@@ -156,12 +156,13 @@ export default function CreateTaskForm({ projectId, issueId, issueTitle, issueSt
                                 onChange={handleTitleChange}
                                 required
                                 disabled={isSubmitting}
-                                className="w-full"
+                                className="w-full transition-colors focus:border-primary focus:ring-primary/20"
+                                autoFocus
                             />
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="description" className="text-sm font-medium">
+                        <div className="space-y-3">
+                            <label htmlFor="description" className="text-sm font-medium text-foreground">
                                 Description
                             </label>
                             <textarea
@@ -171,26 +172,26 @@ export default function CreateTaskForm({ projectId, issueId, issueTitle, issueSt
                                 onChange={handleDescriptionChange}
                                 rows={4}
                                 disabled={isSubmitting}
-                                className="w-full min-h-[100px] px-3 py-2 border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none rounded-md"
+                                className="w-full min-h-[120px] px-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 resize-y rounded-md transition-colors"
                             />
                         </div>
                     </>
                 )}
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-2 border-t">
                     <Button
                         type="button"
                         variant="outline"
                         onClick={onCancel}
                         disabled={isSubmitting}
-                        className="flex-1"
+                        className="flex-1 h-10 font-medium"
                     >
                         Annuler
                     </Button>
                     <Button
                         type="submit"
                         disabled={isSubmitting || !title.trim() || isIssueClosed}
-                        className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
+                        className="flex-1 h-10 font-medium bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
                     >
                         {isSubmitting ? (
                             <div className="flex items-center gap-2">

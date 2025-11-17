@@ -14,7 +14,6 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import CreateIssueForm from '@/components/form/CreateIssueForm';
-import IssuesList from '@/components/project/IssuesList';
 import EditIssueForm from '@/components/form/EditIssueForm';
 import CreateTaskForm from '@/components/form/CreateTaskForm';
 import TaskList from '@/components/task/TaskList';
@@ -501,14 +500,6 @@ export default function ProjectDetails() {
                         </Card>
                     </div>
 
-                    {/* Issues Section */}
-                    <div className="mt-6">
-                        <IssuesList 
-                            projectId={project._id} 
-                            isOwner={user?.id === project.owner?._id}
-                            refreshTrigger={issuesRefreshKey}
-                        />
-                    </div>
                     <Card className="shadow-card">
                         <CardHeader>
                             <div className="flex items-center justify-between">

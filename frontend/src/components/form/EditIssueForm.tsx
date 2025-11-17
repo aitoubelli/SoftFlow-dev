@@ -4,17 +4,18 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, X } from 'lucide-react';
+import { Edit, X } from 'lucide-react';
 
-interface CreateIssueFormProps {
+interface EditIssueFormProps {
     projectId: string;
+    issue: any;
     onSuccess?: () => void;
     onCancel?: () => void;
 }
 
-export default function CreateIssueForm({ projectId, onSuccess, onCancel }: CreateIssueFormProps) {
-    const [title, setTitle] = useState('')
-    const [description, setDescription] = useState('')
+export default function EditIssueForm({ projectId, issue, onSuccess, onCancel }: EditIssueFormProps) {
+    const [title, setTitle] = useState(issue.title || '')
+    const [description, setDescription] = useState(issue.description || '')
     const [error, setError] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -30,14 +31,13 @@ export default function CreateIssueForm({ projectId, onSuccess, onCancel }: Crea
         setIsSubmitting(true)
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/issues`, {
-                method: 'POST',
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectId}/issues/${issue._id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    projectId: projectId,
                     title: title.trim(),
                     description: description.trim()
                 })
@@ -45,25 +45,20 @@ export default function CreateIssueForm({ projectId, onSuccess, onCancel }: Crea
 
             if (!res.ok) {
                 const payload = await res.json().catch(() => ({}))
-                throw new Error(payload.error || 'Erreur lors de la création de l\'issue')
+                throw new Error(payload.error || 'Erreur lors de la modification de l\'issue')
             }
 
-            const createdIssue = await res.json();
-            toast.success('Issue créée avec succès!');
-
-            // Reset form
-            setTitle('')
-            setDescription('')
-            setError('')
+            const updatedIssue = await res.json();
+            toast.success('Issue modifiée avec succès!');
 
             // Call success callback
             if (onSuccess) {
                 onSuccess();
             }
         } catch (err: any) {
-            console.error('Erreur création issue:', err)
+            console.error('Erreur modification issue:', err)
             setError(err.message || 'Erreur réseau')
-            toast.error(err.message || 'Erreur lors de la création de l\'issue');
+            toast.error(err.message || 'Erreur lors de la modification de l\'issue');
         } finally {
             setIsSubmitting(false)
         }
@@ -75,11 +70,11 @@ export default function CreateIssueForm({ projectId, onSuccess, onCancel }: Crea
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-lg">
-                            <FileText className="h-5 w-5 text-primary" />
+                            <Edit className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-xl">Créer une nouvelle issue</CardTitle>
-                            <CardDescription>Définissez le travail à réaliser pour ce projet</CardDescription>
+                            <CardTitle className="text-xl">Modifier l'issue</CardTitle>
+                            <CardDescription>Mettez à jour les informations de l'issue</CardDescription>
                         </div>
                     </div>
                     {onCancel && (
@@ -147,7 +142,7 @@ export default function CreateIssueForm({ projectId, onSuccess, onCancel }: Crea
                             disabled={isSubmitting}
                             className="flex-1 bg-primary hover:bg-primary/90"
                         >
-                            {isSubmitting ? 'Création...' : 'Créer l\'issue'}
+                            {isSubmitting ? 'Modification...' : 'Modifier l\'issue'}
                         </Button>
                     </div>
                 </form>

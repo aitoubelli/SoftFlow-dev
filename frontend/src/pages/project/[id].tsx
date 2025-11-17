@@ -15,6 +15,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import CreateIssueForm from '@/components/form/CreateIssueForm';
 import IssuesList from '@/components/project/IssuesList';
+import EditIssueForm from '@/components/form/EditIssueForm';
+import CreateTaskForm from '@/components/form/CreateTaskForm';
+import TaskList from '@/components/task/TaskList';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter';
 import {
@@ -25,7 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, CircleUser, LayoutDashboard, Menu, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square } from "lucide-react";
+import { Bell, CircleUser, LayoutDashboard, Menu, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square, FileText, Edit, Trash2, MoreVertical, CheckSquare as TaskIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import Link from 'next/link';
@@ -35,6 +38,7 @@ export default function ProjectDetails() {
     const { id } = router.query;
     const [project, setProject] = useState<any>(null);
     const [users, setUsers] = useState<any[]>([]);
+    const [issues, setIssues] = useState<any[]>([]);
     const [selectedDevs, setSelectedDevs] = useState<string[]>([]);
     const [showCreateIssue, setShowCreateIssue] = useState(false);
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -43,7 +47,27 @@ export default function ProjectDetails() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [issuesRefreshKey, setIssuesRefreshKey] = useState(0);
     const issuesRefreshFnRef = useRef<(() => void) | null>(null);
+    const [editingIssue, setEditingIssue] = useState<any>(null);
+    const [showCreateTask, setShowCreateTask] = useState(false);
+    const [taskIssue, setTaskIssue] = useState<any>(null);
     const { token, user, logout } = useAuth();
+
+    const fetchIssues = async () => {
+        if (!id || !token) return;
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}/issues`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setIssues(data);
+            }
+        } catch (error) {
+            console.error('Error fetching issues:', error);
+        }
+    };
 
     useEffect(() => {
         if (router.isReady && id && token) {
@@ -82,6 +106,8 @@ export default function ProjectDetails() {
                     // Set empty array to avoid breaking the UI
                     setUsers([]);
                 });
+
+            fetchIssues();
         }
     }, [id, token, router.isReady]);
 
@@ -155,6 +181,50 @@ export default function ProjectDetails() {
         } catch (error: any) {
             console.error('Error unassigning developer:', error);
             toast.error(error.message || "Failed to unassign developer.");
+        }
+    };
+
+    const handleDeleteIssue = async (issueId: string) => {
+        if (!token || !confirm('Êtes-vous sûr de vouloir supprimer cette issue ?')) return;
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}/issues/${issueId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            if (res.ok) {
+                toast.success('Issue supprimée avec succès!');
+                fetchIssues();
+            } else {
+                throw new Error('Failed to delete issue');
+            }
+        } catch (error: any) {
+            console.error('Error deleting issue:', error);
+            toast.error('Erreur lors de la suppression de l\'issue');
+        }
+    };
+
+    const handleUpdateIssueStatus = async (issueId: string, newStatus: string) => {
+        if (!token) return;
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}/issues/${issueId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (res.ok) {
+                toast.success('Statut mis à jour!');
+                fetchIssues();
+            } else {
+                throw new Error('Failed to update status');
+            }
+        } catch (error: any) {
+            console.error('Error updating status:', error);
+            toast.error('Erreur lors de la mise à jour du statut');
         }
     };
 
@@ -276,7 +346,7 @@ export default function ProjectDetails() {
                             { label: project.name, href: `/project/${id}` }
                         ]} />
                         <div className="flex gap-3">
-                            {user?.id === project.owner?._id && (
+                            {(user?.id === project.owner?._id || user?.role === 'admin') && (
                                 <Button onClick={() => setShowCreateIssue(true)} className="bg-primary hover:bg-primary/90">
                                     <Plus className="h-4 w-4 mr-2" />
                                     Créer une issue
@@ -411,7 +481,7 @@ export default function ProjectDetails() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {user?.id === project.owner?._id && (
+                                {(user?.id === project.owner?._id || user?.role === 'admin') && (
                                     <Button
                                         onClick={() => setShowCreateIssue(true)}
                                         className="w-full justify-start bg-primary hover:bg-primary/90"
@@ -439,6 +509,138 @@ export default function ProjectDetails() {
                             refreshTrigger={issuesRefreshKey}
                         />
                     </div>
+                    <Card className="shadow-card">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-primary/10 rounded-lg">
+                                        <FileText className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <CardTitle>Issues du projet</CardTitle>
+                                        <CardDescription>
+                                            Gérez les user stories et tâches de ce projet
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                                <Badge variant="secondary" className="text-sm">
+                                    {issues.length} issue{issues.length !== 1 ? 's' : ''}
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {issues.length > 0 ? (
+                                <div className="space-y-3">
+                                    {issues.map((issue: any) => (
+                                        <div key={issue._id} className="p-4 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <h4 className="font-semibold text-base truncate">{issue.title}</h4>
+                                                        <Badge
+                                                            variant={issue.status === 'open' ? 'default' : 'secondary'}
+                                                            className="shrink-0"
+                                                        >
+                                                            {issue.status === 'open' ? 'Ouvert' : 'Fermé'}
+                                                        </Badge>
+                                                    </div>
+                                                    {issue.description && (
+                                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                                                            {issue.description}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
+                                                    </p>
+
+                                                    {/* Task List Component */}
+                                                    <TaskList
+                                                        projectId={id as string}
+                                                        issueId={issue._id}
+                                                        issueTitle={issue.title}
+                                                    />
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
+                                                    </p>
+                                                </div>
+                                                {(user?.id === project.owner?._id || user?.role === 'admin') && (
+                                                    <div className="flex items-center gap-2">
+                                                        <Select
+                                                            value={issue.status}
+                                                            onValueChange={(value) => handleUpdateIssueStatus(issue._id, value)}
+                                                        >
+                                                            <SelectTrigger className="w-[120px] h-9">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="open">Ouvert</SelectItem>
+                                                                <SelectItem value="closed">Fermé</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-9 w-9">
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem
+                                                                    onClick={() => {
+                                                                        setTaskIssue(issue);
+                                                                        setShowCreateTask(true);
+                                                                    }}
+                                                                    className={`cursor-pointer ${issue.status === 'closed' ? 'opacity-50 pointer-events-none' : ''}`}
+                                                                    disabled={issue.status === 'closed'}
+                                                                >
+                                                                    <TaskIcon className="h-4 w-4 mr-2" />
+                                                                    {issue.status === 'closed' ? 'Créer une tâche (Issue fermée)' : 'Créer une tâche'}
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    onClick={() => setEditingIssue(issue)}
+                                                                    className="cursor-pointer"
+                                                                >
+                                                                    <Edit className="h-4 w-4 mr-2" />
+                                                                    Modifier
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleDeleteIssue(issue._id)}
+                                                                    className="cursor-pointer text-destructive focus:text-destructive"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                                    Supprimer
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="p-4 bg-muted/30 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                        <FileText className="h-8 w-8 text-muted-foreground" />
+                                    </div>
+                                    <p className="text-muted-foreground font-medium mb-1">Aucune issue pour le moment</p>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        Commencez par créer votre première issue pour ce projet
+                                    </p>
+                                    {(user?.id === project.owner?._id || user?.role === 'admin') && (
+                                        <Button
+                                            onClick={() => setShowCreateIssue(true)}
+                                            className="bg-primary hover:bg-primary/90"
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Créer une issue
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </main>
                 <DashboardFooter isCollapsed={isCollapsed} />
             </div>
@@ -452,8 +654,31 @@ export default function ProjectDetails() {
                             onSuccess={() => {
                                 setShowCreateIssue(false);
                                 setIssuesRefreshKey(prev => prev + 1);
+                                fetchIssues();
                             }}
                             onCancel={() => setShowCreateIssue(false)}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Create Task Modal */}
+            {showCreateTask && taskIssue && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <CreateTaskForm
+                            projectId={id as string}
+                            issueId={taskIssue._id}
+                            issueTitle={taskIssue.title}
+                            issueStatus={taskIssue.status}
+                            onSuccess={() => {
+                                setShowCreateTask(false);
+                                setTaskIssue(null);
+                            }}
+                            onCancel={() => {
+                                setShowCreateTask(false);
+                                setTaskIssue(null);
+                            }}
                         />
                     </div>
                 </div>
@@ -637,6 +862,23 @@ export default function ProjectDetails() {
                                 </Button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Issue Modal */}
+            {editingIssue && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <EditIssueForm
+                            projectId={id as string}
+                            issue={editingIssue}
+                            onSuccess={() => {
+                                setEditingIssue(null);
+                                fetchIssues();
+                            }}
+                            onCancel={() => setEditingIssue(null)}
+                        />
                     </div>
                 </div>
             )}

@@ -40,7 +40,7 @@ export default function ProjectForm() {
                     // reset
                     setName('')
                     setDescription('')
-                    router.push('/home')
+                    router.push('/projects')
                 })
                 .catch((err) => {
                     console.error('Erreur création projet:', err)

@@ -22,7 +22,7 @@ const AdminDashboardView = () => {
     const fetchUserCounts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3001/api/users/counts', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/counts`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

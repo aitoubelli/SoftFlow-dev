@@ -74,18 +74,19 @@ const createTask = async (req, res) => {
             return res.status(400).json({ error: 'ID non valide.' });
         }
 
-        // Check if project exists and user is the owner
+        // Check if project exists
         const project = await Project.findById(projectId);
         if (!project) {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
+        // Check if user is the project owner
         if (project.owner.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent créer des tâches.' });
         }
 
         // Check if issue exists and belongs to the project
-        const issue = await Issue.findOne({ _id: issueId, projectId });
+        const issue = await Issue.findOne({ _id: issueId, project: projectId });
         if (!issue) {
             return res.status(404).json({ error: 'Issue non trouvée ou n\'appartient pas au projet.' });
         }
@@ -150,14 +151,19 @@ const getTasksByIssue = async (req, res) => {
             return res.status(400).json({ error: 'ID non valide.' });
         }
 
-        // Check if project exists and user is the owner
+        // Check if project exists
         const project = await Project.findById(projectId);
         if (!project) {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
+        // Check if user is the project owner
+        if (project.owner.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent voir les tâches.' });
+        }
+
         // Check if issue exists and belongs to the project
-        const issue = await Issue.findOne({ _id: issueId, projectId });
+        const issue = await Issue.findOne({ _id: issueId, project: projectId });
         if (!issue) {
             return res.status(404).json({ error: 'Issue non trouvée ou n\'appartient pas au projet.' });
         }
@@ -187,12 +193,13 @@ const updateTask = async (req, res) => {
             return res.status(400).json({ error: 'ID non valide.' });
         }
 
-        // Check if project exists and user is the owner
+        // Check if project exists
         const project = await Project.findById(projectId);
         if (!project) {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
+        // Check if user is the project owner
         if (project.owner.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent modifier des tâches.' });
         }
@@ -232,12 +239,13 @@ const deleteTask = async (req, res) => {
             return res.status(400).json({ error: 'ID non valide.' });
         }
 
-        // Check if project exists and user is the owner
+        // Check if project exists
         const project = await Project.findById(projectId);
         if (!project) {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
+        // Check if user is the project owner
         if (project.owner.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent supprimer des tâches.' });
         }

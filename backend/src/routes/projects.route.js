@@ -142,6 +142,15 @@ router.post('/:id/assign', protect, adminOrOwnerOnly, async (req, res) => {
 // Create an issue for a project
 router.post('/:projectId/issues', protect, issueController.createIssue);
 
+// Get all issues for a project
+router.get('/:projectId/issues', protect, issueController.getIssuesByProject);
+
+// Update an issue
+router.put('/:projectId/issues/:issueId', protect, issueController.updateIssue);
+
+// Delete an issue
+router.delete('/:projectId/issues/:issueId', protect, issueController.deleteIssue);
+
 // Unassign a user from a project
 router.post('/:id/unassign', protect, adminOrOwnerOnly, async (req, res) => {
     try {

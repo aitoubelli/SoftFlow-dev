@@ -549,6 +549,8 @@ export default function ProjectDetails() {
                                                         projectId={id as string}
                                                         issueId={issue._id}
                                                         issueTitle={issue.title}
+                                                        projectMembers={project.members || []}
+                                                        isOwner={user?.id === project.owner?._id || user?.role === 'admin'}
                                                     />
                                                     <p className="text-xs text-muted-foreground">
                                                         Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}

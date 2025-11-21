@@ -48,6 +48,8 @@ interface TaskListProps {
     projectId: string;
     issueId: string;
     issueTitle: string;
+    projectMembers?: any[];
+    isOwner?: boolean;
 }
 
 const getStatusIcon = (status: string) => {
@@ -72,11 +74,41 @@ const getStatusBadge = (status: string) => {
     }
 };
 
-export default function TaskList({ projectId, issueId, issueTitle }: TaskListProps) {
+export default function TaskList({ projectId, issueId, issueTitle, projectMembers = [], isOwner = false }: TaskListProps) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(false);
     const [expanded, setExpanded] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
     const { token } = useAuth();
+
+    const assignDeveloper = async (taskId: string, developerId: string | null) => {
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tasks/projects/${projectId}/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ assignee: developerId }),
+            });
+
+            if (res.ok) {
+                const updatedTask = await res.json();
+                setTasks(prev => prev.map(task =>
+                    task._id === taskId ? updatedTask : task
+                ));
+                setRefreshKey(prev => prev + 1);
+                toast.success(developerId ? 'Développeur affecté avec succès' : 'Développeur désaffecté');
+            } else {
+                throw new Error('Failed to assign developer');
+            }
+        } catch (error) {
+            console.error('Error assigning developer:', error);
+            toast.error('Erreur lors de l\'affectation du développeur');
+        }
+    };
 
     const fetchTasks = async () => {
         if (!token || !issueId) return;
@@ -222,10 +254,13 @@ export default function TaskList({ projectId, issueId, issueTitle }: TaskListPro
                                     </h5>
                                     {todoTasks.map(task => (
                                         <TaskCard
-                                            key={task._id}
+                                            key={`${task._id}-${refreshKey}`}
                                             task={task}
                                             onStatusUpdate={handleStatusUpdate}
                                             onDelete={handleDeleteTask}
+                                            projectMembers={projectMembers}
+                                            isOwner={isOwner}
+                                            onAssignDeveloper={assignDeveloper}
                                         />
                                     ))}
                                 </div>
@@ -240,10 +275,13 @@ export default function TaskList({ projectId, issueId, issueTitle }: TaskListPro
                                     </h5>
                                     {inProgressTasks.map(task => (
                                         <TaskCard
-                                            key={task._id}
+                                            key={`${task._id}-${refreshKey}`}
                                             task={task}
                                             onStatusUpdate={handleStatusUpdate}
                                             onDelete={handleDeleteTask}
+                                            projectMembers={projectMembers}
+                                            isOwner={isOwner}
+                                            onAssignDeveloper={assignDeveloper}
                                         />
                                     ))}
                                 </div>
@@ -258,10 +296,13 @@ export default function TaskList({ projectId, issueId, issueTitle }: TaskListPro
                                     </h5>
                                     {doneTasks.map(task => (
                                         <TaskCard
-                                            key={task._id}
+                                            key={`${task._id}-${refreshKey}`}
                                             task={task}
                                             onStatusUpdate={handleStatusUpdate}
                                             onDelete={handleDeleteTask}
+                                            projectMembers={projectMembers}
+                                            isOwner={isOwner}
+                                            onAssignDeveloper={assignDeveloper}
                                         />
                                     ))}
                                 </div>
@@ -278,9 +319,12 @@ interface TaskCardProps {
     task: Task;
     onStatusUpdate: (taskId: string, status: string) => void;
     onDelete: (taskId: string) => void;
+    projectMembers?: any[];
+    isOwner?: boolean;
+    onAssignDeveloper: (taskId: string, developerId: string | null) => void;
 }
 
-function TaskCard({ task, onStatusUpdate, onDelete }: TaskCardProps) {
+function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner = false, onAssignDeveloper }: TaskCardProps) {
     return (
         <div className="p-3 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
             <div className="flex items-start gap-3">
@@ -297,14 +341,34 @@ function TaskCard({ task, onStatusUpdate, onDelete }: TaskCardProps) {
                             {task.description}
                         </p>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {task.assignee ? (
-                            <div className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                <span>{task.assignee.name}</span>
-                            </div>
-                        ) : (
-                            <span>Non assigné</span>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                            {task.assignee ? (
+                                <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    <span>Assigné à: {task.assignee.name}</span>
+                                </div>
+                            ) : (
+                                <span>Non assigné</span>
+                            )}
+                        </div>
+                        {isOwner && projectMembers.length > 0 && (
+                            <Select
+                                value={task.assignee?._id || "unassigned"}
+                                onValueChange={(value) => onAssignDeveloper(task._id, value === "unassigned" ? null : value)}
+                            >
+                                <SelectTrigger className="h-7 w-[140px] text-xs">
+                                    <SelectValue placeholder="Assigner à..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unassigned">Non assigné</SelectItem>
+                                    {projectMembers.map((member: any) => (
+                                        <SelectItem key={member.user._id} value={member.user._id}>
+                                            {member.user.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
                         <span>•</span>
                         <span>{new Date(task.updatedAt).toLocaleDateString('fr-FR')}</span>

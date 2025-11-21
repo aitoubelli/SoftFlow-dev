@@ -1,72 +1,64 @@
 import React, { useState } from 'react'
-import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderOpen, X } from 'lucide-react';
+import { Edit, X } from 'lucide-react';
 
-interface ProjectFormProps {
+interface EditIssueFormProps {
+    projectId: string;
+    issue: any;
     onSuccess?: () => void;
     onCancel?: () => void;
 }
 
-export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
-    const [name, setName] = useState('')
-    const [description, setDescription] = useState('')
+export default function EditIssueForm({ projectId, issue, onSuccess, onCancel }: EditIssueFormProps) {
+    const [title, setTitle] = useState(issue.title || '')
+    const [description, setDescription] = useState(issue.description || '')
     const [error, setError] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const { user, token } = useAuth();
-    const router = useRouter();
+    const { token } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!name.trim()) {
-            setError('Le nom du projet est requis.')
+        if (!title.trim()) {
+            setError('Le titre de l\'issue est requis.')
             return
         }
         setError('')
         setIsSubmitting(true)
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects`, {
-                method: 'POST',
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${projectId}/issues/${issue._id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    name: name.trim(),
-                    description: description.trim(),
-                    owner: user?.id
+                    title: title.trim(),
+                    description: description.trim()
                 })
             });
 
             if (!res.ok) {
                 const payload = await res.json().catch(() => ({}))
-                throw new Error(payload.error || 'Erreur lors de la création du projet')
+                throw new Error(payload.error || 'Erreur lors de la modification de l\'issue')
             }
 
-            const createdProject = await res.json();
-            toast.success('Projet créé avec succès!');
+            const updatedIssue = await res.json();
+            toast.success('Issue modifiée avec succès!');
 
-            // Reset form
-            setName('')
-            setDescription('')
-            setError('')
-
-            // Call success callback or redirect
+            // Call success callback
             if (onSuccess) {
                 onSuccess();
-            } else {
-                router.push('/projects');
             }
         } catch (err: any) {
-            console.error('Erreur création projet:', err)
+            console.error('Erreur modification issue:', err)
             setError(err.message || 'Erreur réseau')
-            toast.error(err.message || 'Erreur lors de la création du projet');
+            toast.error(err.message || 'Erreur lors de la modification de l\'issue');
         } finally {
             setIsSubmitting(false)
         }
@@ -78,11 +70,11 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-lg">
-                            <FolderOpen className="h-5 w-5 text-primary" />
+                            <Edit className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <CardTitle className="text-xl">Créer un nouveau projet</CardTitle>
-                            <CardDescription>Définissez les paramètres de votre nouveau projet</CardDescription>
+                            <CardTitle className="text-xl">Modifier l'issue</CardTitle>
+                            <CardDescription>Mettez à jour les informations de l'issue</CardDescription>
                         </div>
                     </div>
                     {onCancel && (
@@ -106,29 +98,29 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
                     )}
 
                     <div className="space-y-2">
-                        <label htmlFor="project-name" className="text-sm font-medium">
-                            Nom du projet <span className="text-destructive">*</span>
+                        <label htmlFor="issue-title" className="text-sm font-medium">
+                            Titre <span className="text-destructive">*</span>
                         </label>
                         <Input
-                            id="project-name"
+                            id="issue-title"
                             type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Entrez le nom du projet"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Entrez le titre de l'issue"
                             required
                             className="w-full"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="project-desc" className="text-sm font-medium">
+                        <label htmlFor="issue-desc" className="text-sm font-medium">
                             Description
                         </label>
                         <textarea
-                            id="project-desc"
+                            id="issue-desc"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Description du projet"
+                            placeholder="Description détaillée de l'issue"
                             rows={4}
                             className="w-full px-3 py-2 border border-input rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                         />
@@ -150,7 +142,7 @@ export default function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
                             disabled={isSubmitting}
                             className="flex-1 bg-primary hover:bg-primary/90"
                         >
-                            {isSubmitting ? 'Création...' : 'Créer le projet'}
+                            {isSubmitting ? 'Modification...' : 'Modifier l\'issue'}
                         </Button>
                     </div>
                 </form>

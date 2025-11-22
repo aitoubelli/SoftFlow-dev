@@ -13,10 +13,7 @@ const getIssuesByProject = async (req, res) => {
             return res.status(404).json({ error: 'Project not found.' });
         }
 
-        // Check if user is the project owner
-        if (project.owner.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: 'Access denied. Only project owners can view issues.' });
-        }
+
 
         const issues = await Issue.find({ project: projectId })
             .populate('createdBy', 'name email')

@@ -29,6 +29,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import EditTaskForm from '@/components/form/EditTaskForm';
 
 interface Task {
     _id: string;
@@ -79,6 +80,7 @@ export default function TaskList({ projectId, issueId, issueTitle, projectMember
     const [loading, setLoading] = useState(false);
     const [expanded, setExpanded] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
     const { token } = useAuth();
 
     const assignDeveloper = async (taskId: string, developerId: string | null) => {
@@ -261,6 +263,7 @@ export default function TaskList({ projectId, issueId, issueTitle, projectMember
                                             projectMembers={projectMembers}
                                             isOwner={isOwner}
                                             onAssignDeveloper={assignDeveloper}
+                                            onEdit={() => setEditingTask(task)}
                                         />
                                     ))}
                                 </div>
@@ -282,6 +285,7 @@ export default function TaskList({ projectId, issueId, issueTitle, projectMember
                                             projectMembers={projectMembers}
                                             isOwner={isOwner}
                                             onAssignDeveloper={assignDeveloper}
+                                            onEdit={() => setEditingTask(task)}
                                         />
                                     ))}
                                 </div>
@@ -303,12 +307,32 @@ export default function TaskList({ projectId, issueId, issueTitle, projectMember
                                             projectMembers={projectMembers}
                                             isOwner={isOwner}
                                             onAssignDeveloper={assignDeveloper}
+                                            onEdit={() => setEditingTask(task)}
                                         />
                                     ))}
                                 </div>
                             )}
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Edit Task Modal */}
+            {editingTask && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <EditTaskForm
+                            projectId={projectId}
+                            task={editingTask}
+                            projectMembers={projectMembers}
+                            isOwner={isOwner}
+                            onSuccess={() => {
+                                setEditingTask(null);
+                                fetchTasks();
+                            }}
+                            onCancel={() => setEditingTask(null)}
+                        />
+                    </div>
                 </div>
             )}
         </div>
@@ -322,9 +346,10 @@ interface TaskCardProps {
     projectMembers?: any[];
     isOwner?: boolean;
     onAssignDeveloper: (taskId: string, developerId: string | null) => void;
+    onEdit: () => void;
 }
 
-function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner = false, onAssignDeveloper }: TaskCardProps) {
+function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner = false, onAssignDeveloper, onEdit }: TaskCardProps) {
     return (
         <div className="p-3 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
             <div className="flex items-start gap-3">
@@ -396,7 +421,7 @@ function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner
                         </Select>
                         <DropdownMenuSeparator />
                         {isOwner && (
-                            <DropdownMenuItem className="cursor-pointer">
+                            <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Modifier
                             </DropdownMenuItem>

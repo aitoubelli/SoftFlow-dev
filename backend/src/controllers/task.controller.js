@@ -80,8 +80,8 @@ const createTask = async (req, res) => {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
-        // Check if user is the project owner
-        if (project.owner.toString() !== req.user._id.toString()) {
+        // Check if user is the project owner or admin
+        if (req.user.role !== 'admin' && project.owner.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent créer des tâches.' });
         }
 
@@ -131,18 +131,19 @@ const getTasksByProject = async (req, res) => {
         }
 
         // Check permissions
+        const isAdmin = req.user.role === 'admin';
         const isOwner = project.owner.toString() === req.user._id.toString();
         const isMember = project.members.some(member => member.user.toString() === req.user._id.toString());
 
-        if (!isOwner && !isMember) {
+        if (!isAdmin && !isOwner && !isMember) {
             return res.status(403).json({ error: 'Accès refusé. Vous n\'êtes pas membre de ce projet.' });
         }
 
         // Build query
         const query = { project: projectId };
 
-        // If not owner, restrict to assigned tasks
-        if (!isOwner) {
+        // If not owner and not admin, restrict to assigned tasks
+        if (!isAdmin && !isOwner) {
             query.assignee = req.user._id;
         }
 
@@ -176,10 +177,11 @@ const getTasksByIssue = async (req, res) => {
 
 
         // Check permissions
+        const isAdmin = req.user.role === 'admin';
         const isOwner = project.owner.toString() === req.user._id.toString();
         const isMember = project.members.some(member => member.user.toString() === req.user._id.toString());
 
-        if (!isOwner && !isMember) {
+        if (!isAdmin && !isOwner && !isMember) {
             return res.status(403).json({ error: 'Accès refusé. Vous n\'êtes pas membre de ce projet.' });
         }
 
@@ -189,8 +191,8 @@ const getTasksByIssue = async (req, res) => {
             issueId: issueId
         };
 
-        // If not owner, restrict to assigned tasks
-        if (!isOwner) {
+        // If not owner and not admin, restrict to assigned tasks
+        if (!isAdmin && !isOwner) {
             query.assignee = req.user._id;
         }
 
@@ -234,11 +236,12 @@ const updateTask = async (req, res) => {
             return res.status(404).json({ error: 'Tâche non trouvée.' });
         }
 
-        // Check permissions: Owner OR Assignee
+        // Check permissions: Admin OR Owner OR Assignee
+        const isAdmin = req.user.role === 'admin';
         const isOwner = project.owner.toString() === req.user._id.toString();
         const isAssignee = task.assignee && task.assignee.toString() === req.user._id.toString();
 
-        if (!isOwner && !isAssignee) {
+        if (!isAdmin && !isOwner && !isAssignee) {
             return res.status(403).json({ error: 'Accès refusé. Seuls le propriétaire ou l\'assigné peuvent modifier cette tâche.' });
         }
 
@@ -280,8 +283,8 @@ const deleteTask = async (req, res) => {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
-        // Check if user is the project owner
-        if (project.owner.toString() !== req.user._id.toString()) {
+        // Check if user is the project owner or admin
+        if (req.user.role !== 'admin' && project.owner.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent supprimer des tâches.' });
         }
 

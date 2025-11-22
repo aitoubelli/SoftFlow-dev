@@ -130,8 +130,24 @@ const getTasksByProject = async (req, res) => {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
+        // Check permissions
+        const isOwner = project.owner.toString() === req.user._id.toString();
+        const isMember = project.members.some(member => member.user.toString() === req.user._id.toString());
+
+        if (!isOwner && !isMember) {
+            return res.status(403).json({ error: 'Accès refusé. Vous n\'êtes pas membre de ce projet.' });
+        }
+
+        // Build query
+        const query = { project: projectId };
+
+        // If not owner, restrict to assigned tasks
+        if (!isOwner) {
+            query.assignee = req.user._id;
+        }
+
         // Get all tasks for this project
-        const tasks = await Task.find({ project: projectId })
+        const tasks = await Task.find(query)
             .populate('assignee', 'name email')
             .sort({ createdAt: -1 });
 
@@ -157,9 +173,25 @@ const getTasksByIssue = async (req, res) => {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
-        // Check if user is the project owner
-        if (project.owner.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent voir les tâches.' });
+
+
+        // Check permissions
+        const isOwner = project.owner.toString() === req.user._id.toString();
+        const isMember = project.members.some(member => member.user.toString() === req.user._id.toString());
+
+        if (!isOwner && !isMember) {
+            return res.status(403).json({ error: 'Accès refusé. Vous n\'êtes pas membre de ce projet.' });
+        }
+
+        // Build query
+        const query = {
+            project: projectId,
+            issueId: issueId
+        };
+
+        // If not owner, restrict to assigned tasks
+        if (!isOwner) {
+            query.assignee = req.user._id;
         }
 
         // Check if issue exists and belongs to the project
@@ -168,11 +200,8 @@ const getTasksByIssue = async (req, res) => {
             return res.status(404).json({ error: 'Issue non trouvée ou n\'appartient pas au projet.' });
         }
 
-        // Get all tasks for this issue
-        const tasks = await Task.find({
-            project: projectId,
-            issueId: issueId
-        })
+        // Get tasks
+        const tasks = await Task.find(query)
             .populate('assignee', 'name email')
             .sort({ createdAt: -1 });
 
@@ -199,15 +228,18 @@ const updateTask = async (req, res) => {
             return res.status(404).json({ error: 'Projet non trouvé.' });
         }
 
-        // Check if user is the project owner
-        if (project.owner.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent modifier des tâches.' });
-        }
-
-        // Find and update the task
+        // Find the task first to check assignee
         const task = await Task.findOne({ _id: taskId, project: projectId });
         if (!task) {
             return res.status(404).json({ error: 'Tâche non trouvée.' });
+        }
+
+        // Check permissions: Owner OR Assignee
+        const isOwner = project.owner.toString() === req.user._id.toString();
+        const isAssignee = task.assignee && task.assignee.toString() === req.user._id.toString();
+
+        if (!isOwner && !isAssignee) {
+            return res.status(403).json({ error: 'Accès refusé. Seuls le propriétaire ou l\'assigné peuvent modifier cette tâche.' });
         }
 
         // Update fields
@@ -219,7 +251,10 @@ const updateTask = async (req, res) => {
             }
             task.status = status;
         }
-        if (assignee !== undefined) task.assignee = assignee || null;
+        // Only owner can change assignee
+        if (assignee !== undefined) {
+            task.assignee = assignee || null;
+        }
 
         await task.save();
 

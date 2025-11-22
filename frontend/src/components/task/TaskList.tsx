@@ -395,10 +395,12 @@ function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner
                             </SelectContent>
                         </Select>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer">
-                            <Edit className="h-4 w-4 mr-2" />
-                            Modifier
-                        </DropdownMenuItem>
+                        {isOwner && (
+                            <DropdownMenuItem className="cursor-pointer">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Modifier
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                             className="cursor-pointer text-destructive focus:text-destructive"

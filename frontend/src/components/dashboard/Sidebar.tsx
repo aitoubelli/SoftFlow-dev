@@ -65,12 +65,12 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           </div>
           {/* User Avatar Section */}
           <div className={`flex flex-col items-center gap-2 p-4 ${isCollapsed ? 'hidden' : ''}`}>
-            <Avatar className="h-16 w-16">
+            <Avatar className="h-16 w-16 border-2 border-border">
               <AvatarImage src="/avatar-placeholder.jpg" alt="Avatar" />
               <AvatarFallback>{user.name ? user.name.charAt(0) : 'A'}</AvatarFallback>
             </Avatar>
             <div className="text-center">
-              <p className="font-semibold">{user.name || 'Admin User'}</p>
+              <p className="font-semibold">{user.name}</p>
               <UserRoleBadge role={user.role} />
             </div>
           </div>

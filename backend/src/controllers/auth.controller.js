@@ -40,7 +40,7 @@ const login = async (req, res) => {
 
         // Générer un JWT (valide 7 jours)
         const token = jwt.sign(
-            { id: user._id, email: user.email, role: user.role },
+            { id: user._id, name: user.name, email: user.email, role: user.role },
             process.env.JWT_SECRET || 'softflow-secret-key',
             { expiresIn: '7d' }
         );

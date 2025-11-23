@@ -32,7 +32,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
     <nav className="flex" aria-label="Breadcrumb">
       <ol className="flex items-center space-x-2">
         {processedItems.map((item, index) => (
-          <li key={item.href} className="flex items-center">
+          <li key={`${item.href}-${index}`} className="flex items-center">
             <Link href={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary">
               {item.label}
             </Link>

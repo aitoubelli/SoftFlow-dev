@@ -4,16 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { NavigationHeader } from "@/components/dashboard/NavigationHeader";
 import { DashboardFooter } from "@/components/dashboard/DashboardFooter";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +23,7 @@ import {
   TrendingUp,
   Clock
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import ProjectForm from "@/components/form/projectForm";
 
@@ -39,6 +33,7 @@ export default function Home() {
   const [projects, setProjects] = useState<any[]>([]);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -113,47 +108,13 @@ export default function Home() {
     <div className="flex min-h-screen w-full">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`flex flex-col flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-[60px]' : 'md:ml-[220px] lg:ml-[280px]'}`}>
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 backdrop-blur-sm px-4 lg:h-[60px] lg:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden border-primary/20 hover:bg-primary/5"
-              >
-                <Menu className="h-5 w-5 text-primary" />
-                <span className="sr-only">Basculer le menu de navigation</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
-              <nav className="grid gap-2 text-lg font-medium">
-                {/* Mobile navigation items will be handled by the Sidebar component */}
-              </nav>
-            </SheetContent>
-          </Sheet>
-          <div className="w-full flex-1 flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <LayoutDashboard className="h-6 w-6 text-primary" />
-              <span className="text-primary font-bold">SoftFlow</span>
-            </Link>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full border-primary/20 hover:bg-primary/5">
-                <CircleUser className="h-5 w-5 text-primary" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="border-primary/20">
-              <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="hover:bg-primary/5">Paramètres</DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-primary/5">Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => logout()} className="hover:bg-destructive/5">Déconnexion</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </header>
+        <NavigationHeader
+          isMobile={isMobile}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          user={user}
+          logout={logout}
+        />
         <main className="flex flex-1 flex-col gap-6 p-4 lg:gap-8 lg:p-8 overflow-auto pb-20 lg:pb-[60px] bg-gradient-to-br from-background via-background to-primary/5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <Breadcrumbs items={[{ label: "Accueil", href: "/projects" }, { label: "Mes Projets", href: "/projects" }]} />

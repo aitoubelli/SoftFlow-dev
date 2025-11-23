@@ -48,6 +48,7 @@ interface TaskListProps {
     projectId: string;
     issueId: string;
     issueTitle: string;
+    refreshTrigger?: number;
 }
 
 const getStatusIcon = (status: string) => {
@@ -72,7 +73,7 @@ const getStatusBadge = (status: string) => {
     }
 };
 
-export default function TaskList({ projectId, issueId, issueTitle }: TaskListProps) {
+export default function TaskList({ projectId, issueId, issueTitle, refreshTrigger = 0 }: TaskListProps) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -104,10 +105,8 @@ export default function TaskList({ projectId, issueId, issueTitle }: TaskListPro
     };
 
     useEffect(() => {
-        if (expanded) {
-            fetchTasks();
-        }
-    }, [expanded, issueId, token]);
+        fetchTasks();
+    }, [issueId, token, refreshTrigger]);
 
     const handleStatusUpdate = async (taskId: string, newStatus: string) => {
         if (!token) return;

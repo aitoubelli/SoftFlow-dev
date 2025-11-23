@@ -49,6 +49,7 @@ export default function ProjectDetails() {
     const [editingIssue, setEditingIssue] = useState<any>(null);
     const [showCreateTask, setShowCreateTask] = useState(false);
     const [taskIssue, setTaskIssue] = useState<any>(null);
+    const [taskRefreshKey, setTaskRefreshKey] = useState(0);
     const { token, user, logout } = useAuth();
 
     const fetchIssues = async () => {
@@ -549,6 +550,7 @@ export default function ProjectDetails() {
                                                         projectId={id as string}
                                                         issueId={issue._id}
                                                         issueTitle={issue.title}
+                                                        refreshTrigger={taskRefreshKey}
                                                     />
                                                     <p className="text-xs text-muted-foreground">
                                                         Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
@@ -665,6 +667,7 @@ export default function ProjectDetails() {
                             onSuccess={() => {
                                 setShowCreateTask(false);
                                 setTaskIssue(null);
+                                setTaskRefreshKey(prev => prev + 1);
                             }}
                             onCancel={() => {
                                 setShowCreateTask(false);

@@ -133,8 +133,8 @@ export default function Home() {
           </Sheet>
           <div className="w-full flex-1 flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2 font-semibold">
-              <LayoutDashboard className="h-6 w-6 text-primary" />
-              <span className="text-primary font-bold">SoftFlow</span>
+              <LayoutDashboard className="h-6 w-6 text-[#0e1595]" />
+              <span className="text-[#0e1595] font-bold">SoftFlow</span>
             </Link>
           </div>
           <DropdownMenu>

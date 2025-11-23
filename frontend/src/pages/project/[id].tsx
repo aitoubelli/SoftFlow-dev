@@ -27,8 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, CircleUser, LayoutDashboard, Menu, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square, FileText, Edit, Trash2, MoreVertical, CheckSquare as TaskIcon } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Bell, CircleUser, LayoutDashboard, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square, FileText, Edit, Trash2, MoreVertical, CheckSquare as TaskIcon } from "lucide-react";
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import Link from 'next/link';
 
@@ -242,23 +241,6 @@ export default function ProjectDetails() {
                 <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
                 <div className={`flex flex-col flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-[60px]' : 'md:ml-[220px] lg:ml-[280px]'}`}>
                     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-                        <Sheet>
-                            <SheetTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="shrink-0 md:hidden"
-                                >
-                                    <Menu className="h-5 w-5" />
-                                    <span className="sr-only">Basculer le menu de navigation</span>
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="left" className="flex flex-col">
-                                <nav className="grid gap-2 text-lg font-medium">
-                                    {/* Mobile navigation items will be handled by the Sidebar component */}
-                                </nav>
-                            </SheetContent>
-                        </Sheet>
                         <div className="w-full flex-1 flex items-center gap-4">
                             <Link href="/" className="flex items-center gap-2 font-semibold">
                                 <LayoutDashboard className="h-6 w-6 text-[#0e1595]" />
@@ -305,23 +287,6 @@ export default function ProjectDetails() {
             <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
             <div className={`flex flex-col flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-[60px]' : 'md:ml-[220px] lg:ml-[280px]'}`}>
                 <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-                    <Sheet>
-                        <SheetTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                className="shrink-0 md:hidden"
-                            >
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">Basculer le menu de navigation</span>
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="left" className="flex flex-col">
-                            <nav className="grid gap-2 text-lg font-medium">
-                                {/* Mobile navigation items will be handled by the Sidebar component */}
-                            </nav>
-                        </SheetContent>
-                    </Sheet>
                     <div className="w-full flex-1 flex items-center gap-4">
                         <Link href="/" className="flex items-center gap-2 font-semibold">
                             <LayoutDashboard className="h-6 w-6 text-[#0e1595]" />

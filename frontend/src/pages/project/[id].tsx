@@ -70,7 +70,15 @@ export default function ProjectDetails() {
     };
 
     useEffect(() => {
-        if (router.isReady && id && token) {
+        if (!token) {
+            setProject(null);
+            setIssues([]);
+            setUsers([]);
+            router.push('/auth');
+            return;
+        }
+
+        if (router.isReady && id) {
             fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

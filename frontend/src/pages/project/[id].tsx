@@ -94,6 +94,7 @@ export default function ProjectDetails() {
                 })
                 .catch((error: Error) => console.error('Error fetching project details:', error));
 
+            if (user && (user.role === 'admin' || user.role === 'owner')) {
             fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -113,6 +114,7 @@ export default function ProjectDetails() {
                     // Set empty array to avoid breaking the UI
                     setUsers([]);
                 });
+            }
 
             fetchIssues();
         }
@@ -523,6 +525,8 @@ export default function ProjectDetails() {
                                                         projectId={id as string}
                                                         issueId={issue._id}
                                                         issueTitle={issue.title}
+                                                        projectMembers={project.members || []}
+                                                        isOwner={user?.id === project.owner?._id || user?.role === 'admin'}
                                                         refreshTrigger={taskRefreshKey}
                                                     />
                                                     <p className="text-xs text-muted-foreground">

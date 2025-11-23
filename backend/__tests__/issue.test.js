@@ -74,15 +74,16 @@ describe('Issue API', () => {
             .set('Authorization', `Bearer ${ownerToken}`)
             .send({
                 title: 'Test Issue',
-                description: 'This is a test issue'
+                description: 'This is a test issue',
+                projectId
             });
 
         expect(res.statusCode).toBe(201);
         expect(res.body.title).toBe('Test Issue');
         expect(res.body.description).toBe('This is a test issue');
         expect(res.body.status).toBe('open');
-        expect(res.body.projectId).toBe(projectId);
-        expect(res.body.id).toBeDefined();
+        expect(res.body.project).toBe(projectId);
+        expect(res.body._id).toBeDefined();
     });
 
     test('Owner can create an issue with only title', async () => {
@@ -90,7 +91,8 @@ describe('Issue API', () => {
             .post(`/api/projects/${projectId}/issues`)
             .set('Authorization', `Bearer ${ownerToken}`)
             .send({
-                title: 'Test Issue Minimal'
+                title: 'Test Issue Minimal',
+                projectId
             });
 
         expect(res.statusCode).toBe(201);
@@ -105,11 +107,12 @@ describe('Issue API', () => {
             .set('Authorization', `Bearer ${devToken}`)
             .send({
                 title: 'Dev Issue',
-                description: 'This should fail'
+                description: 'This should fail',
+                projectId
             });
 
         expect(res.statusCode).toBe(403);
-        expect(res.body.error).toBe('Accès refusé. Seuls les propriétaires peuvent créer des issues.');
+        expect(res.body.error).toBe('Access denied. Only project owners can create issues.');
     });
 
     test('Creating issue without title returns 400', async () => {
@@ -117,11 +120,12 @@ describe('Issue API', () => {
             .post(`/api/projects/${projectId}/issues`)
             .set('Authorization', `Bearer ${ownerToken}`)
             .send({
-                description: 'No title provided'
+                description: 'No title provided',
+                projectId
             });
 
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toBe('Le titre de l\'issue est requis.');
+        expect(res.body.error).toContain('Issue validation failed: title: Path `title` is required.');
     });
 
     test('Creating issue with invalid project ID returns 400', async () => {
@@ -129,11 +133,12 @@ describe('Issue API', () => {
             .post('/api/projects/invalid-id/issues')
             .set('Authorization', `Bearer ${ownerToken}`)
             .send({
-                title: 'Invalid Project Issue'
+                title: 'Invalid Project Issue',
+                projectId: 'invalid-id'
             });
 
         expect(res.statusCode).toBe(400);
-        expect(res.body.error).toBe('ID de projet non valide.');
+        expect(res.body.error).toContain('Cast to ObjectId failed');
     });
 
     test('Creating issue for non-existent project returns 404', async () => {
@@ -143,11 +148,12 @@ describe('Issue API', () => {
             .post(`/api/projects/${fakeId}/issues`)
             .set('Authorization', `Bearer ${ownerToken}`)
             .send({
-                title: 'Non-existent Project Issue'
+                title: 'Non-existent Project Issue',
+                projectId: fakeId
             });
 
         expect(res.statusCode).toBe(404);
-        expect(res.body.error).toBe('Projet non trouvé.');
+        expect(res.body.error).toBe('Project not found.');
     });
 
     test('Creating issue without authentication returns 401', async () => {

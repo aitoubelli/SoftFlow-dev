@@ -1,3 +1,4 @@
+import { useRouter } from 'next/dist/client/components/navigation';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
@@ -22,6 +23,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
 
   useEffect(() => {
     console.log("Auth: Initializing AuthProvider, attempting to load token from localStorage...");
@@ -74,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    router.push("/"); // Redirect to home page after logout
   };
 
   if (loading) {

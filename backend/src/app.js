@@ -7,6 +7,7 @@ const projectsRoute = require('./routes/projects.route');
 const usersRoutes = require('./routes/users.routes');
 const tasksRoutes = require('./routes/tasks.route');
 const issuesRoutes = require('./routes/issues.route');
+const profileRoutes = require('./routes/profile.routes');
 
 const app = express();
 
@@ -29,5 +30,6 @@ app.use('/api/health', healthRoute);
 app.use('/api/projects', projectsRoute);
 app.use('/api/tasks', tasksRoutes); // Add tasks routes
 app.use('/api/issues', issuesRoutes);
+app.use('/api', profileRoutes);
 
 module.exports = app;

@@ -13,6 +13,7 @@ interface AuthContextType {
   token: string | null;
   login: (token: string) => void;
   logout: () => void;
+  refreshUser: () => void;
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -72,6 +73,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const refreshUser = async () => {
+    console.log("Auth: Refreshing user data...");
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken) {
+      console.log("Auth: No token found for refresh.");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${storedToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const updatedUser = {
+          id: data.user._id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role
+        };
+        setUser(updatedUser);
+        console.log("Auth: User data refreshed successfully.");
+      } else {
+        console.log("Auth: Failed to refresh user data.");
+      }
+    } catch (error) {
+      console.error("Auth: Error refreshing user data:", error);
+    }
+  };
+
   const logout = () => {
     console.log("Auth: Logout called, clearing token and removing from localStorage.");
     localStorage.removeItem('token');
@@ -86,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, loading }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, isAuthenticated: !!token, loading }}>
       {children}
     </AuthContext.Provider>
   );

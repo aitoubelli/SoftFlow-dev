@@ -22,6 +22,11 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
+    environment:
+      # BACKEND_URL is for server-side rewrites
+      - BACKEND_URL=http://backend:8000
+      # NEXT_PUBLIC_BACKEND_URL is for client-side code
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
     depends_on:
       - backend
     volumes:

@@ -30,6 +30,8 @@ import {
 import { Bell, CircleUser, LayoutDashboard, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square, FileText, Edit, Trash2, MoreVertical, CheckSquare as TaskIcon } from "lucide-react";
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import Link from 'next/link';
+import CreateSprintForm from '@/components/form/CreateSprintForm';
+import SprintList from '@/components/sprint/SprintList';
 
 export default function ProjectDetails() {
     const router = useRouter();
@@ -50,6 +52,29 @@ export default function ProjectDetails() {
     const [taskIssue, setTaskIssue] = useState<any>(null);
     const [taskRefreshKey, setTaskRefreshKey] = useState(0);
     const { token, user, logout } = useAuth();
+    const [showCreateSprint, setShowCreateSprint] = useState(false);
+    const [sprints, setSprints] = useState<any[]>([]);
+    const [loadingSprints, setLoadingSprints] = useState(false);
+
+    const fetchSprints = async () => {
+        if (!id || !token) return;
+        setLoadingSprints(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}/sprints`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSprints(data);
+            }
+        } catch (error) {
+            console.error('Error fetching sprints:', error);
+        } finally {
+            setLoadingSprints(false);
+        }
+    };
 
     const fetchIssues = async () => {
         if (!id || !token) return;
@@ -117,6 +142,7 @@ export default function ProjectDetails() {
             }
 
             fetchIssues();
+            fetchSprints();
         }
     }, [id, token, router.isReady]);
 
@@ -379,6 +405,9 @@ export default function ProjectDetails() {
                         </CardContent>
                     </Card>
 
+                    {/* Sprints Section */}
+                    <SprintList sprints={sprints} loading={loadingSprints} />
+
                     {/* Team Management Section */}
                     <div className="grid gap-6 lg:grid-cols-2">
                         {/* Current Team Members */}
@@ -463,6 +492,18 @@ export default function ProjectDetails() {
                                     >
                                         <Plus className="h-4 w-4 mr-3" />
                                         Créer une nouvelle issue
+                                    </Button>
+                                )}
+
+                            </CardContent>
+                             <CardContent className="space-y-4">
+                                {(user?.id === project.owner?._id || user?.role === 'admin') && (
+                                    <Button
+                                        onClick={() => setShowCreateSprint(true)}
+                                        className="w-full justify-start bg-primary hover:bg-primary/90"
+                                    >
+                                        <Plus className="h-4 w-4 mr-3" />
+                                        Créer un nouveau sprint
                                     </Button>
                                 )}
 
@@ -849,6 +890,24 @@ export default function ProjectDetails() {
                                 fetchIssues();
                             }}
                             onCancel={() => setEditingIssue(null)}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Create Sprint Modal */}
+            {showCreateSprint && project && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <CreateSprintForm
+                            projectId={project._id}
+                            onSuccess={() => {
+                                setShowCreateSprint(false);
+                                setIssuesRefreshKey(prev => prev + 1);
+                                fetchIssues();
+                                fetchSprints();
+                            }}
+                            onCancel={() => setShowCreateSprint(false)}
                         />
                     </div>
                 </div>

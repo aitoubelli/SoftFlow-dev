@@ -11,6 +11,7 @@ const tasksRoutes = require('./routes/tasks.route');
 const issuesRoutes = require('./routes/issues.route');
 const profileRoutes = require('./routes/profile.routes');
 const sprintRoutes = require('./routes/sprint.routes');
+const testcasesRoutes = require('./routes/testcases.route');
 
 const app = express();
 
@@ -43,5 +44,6 @@ app.use('/api/projects', projectsRoute);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/issues', issuesRoutes);
 app.use('/api', profileRoutes);
+app.use('/api/testcases', testcasesRoutes);
 
 module.exports = app;

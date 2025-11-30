@@ -7,10 +7,64 @@ const issueController = require('../controllers/issue.controller'); // Import is
 
 const { protect, adminOrOwnerOnly } = require('../middleware/auth.middleware');
 
-// Get project counts
+/**
+ * @swagger
+ * /projects/counts:
+ *   get:
+ *     summary: Get project counts
+ *     description: Get counts of projects by status or other metrics
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Project counts retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: number
+ *                   description: Total number of projects
+ *                 active:
+ *                   type: number
+ *                   description: Number of active projects
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/counts', protect, projectController.getProjectCounts);
 
 // Get all projects by owner/member
+/**
+ * @swagger
+ * /projects:
+ *   get:
+ *     summary: Get all projects
+ *     description: Retrieve all projects the user has access to (owner/member)
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Projects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Project'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/', protect, async (req, res) => {
     try {
         let query = {};
@@ -36,6 +90,58 @@ router.get('/', protect, async (req, res) => {
 
 
 // Create a new project
+/**
+ * @swagger
+ * /projects:
+ *   post:
+ *     summary: Create a new project
+ *     description: Create a new project (admin/owner only)
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Project name
+ *               description:
+ *                 type: string
+ *                 description: Project description
+ *               owner:
+ *                 type: string
+ *                 description: Owner user ID (optional, defaults to current user)
+ *     responses:
+ *       201:
+ *         description: Project created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Project'
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/', protect, adminOrOwnerOnly, async (req, res) => {
     try {
         const { name, description, owner } = req.body;
@@ -70,6 +176,42 @@ router.post('/', protect, adminOrOwnerOnly, async (req, res) => {
 });
 
 // Get a project by ID
+/**
+ * @swagger
+ * /projects/{id}:
+ *   get:
+ *     summary: Get project by ID
+ *     description: Retrieve a specific project by its ID
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     responses:
+ *       200:
+ *         description: Project retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Project'
+ *       400:
+ *         description: Invalid project ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Project not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -92,6 +234,67 @@ router.get('/:id', async (req, res) => {
 });
 
 // Assign users to a project
+/**
+ * @swagger
+ * /projects/{id}/assign:
+ *   post:
+ *     summary: Assign users to project
+ *     description: Assign multiple users to a project (admin/owner only)
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [userIds]
+ *             properties:
+ *               userIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Array of user IDs to assign
+ *     responses:
+ *       200:
+ *         description: Users assigned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Project'
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Project not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/:id/assign', protect, adminOrOwnerOnly, async (req, res) => {
     try {
         const { id } = req.params;
@@ -152,6 +355,65 @@ router.put('/:projectId/issues/:issueId', protect, issueController.updateIssue);
 router.delete('/:projectId/issues/:issueId', protect, issueController.deleteIssue);
 
 // Unassign a user from a project
+/**
+ * @swagger
+ * /projects/{id}/unassign:
+ *   post:
+ *     summary: Unassign user from project
+ *     description: Remove a user from a project (admin/owner only)
+ *     tags: [Projects]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Project ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [userId]
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: User ID to unassign
+ *     responses:
+ *       200:
+ *         description: User unassigned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Project'
+ *       400:
+ *         description: Invalid request data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Project or user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/:id/unassign', protect, adminOrOwnerOnly, async (req, res) => {
     try {
         const { id } = req.params;

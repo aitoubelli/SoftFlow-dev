@@ -1,6 +1,5 @@
 const Sprint = require('../models/Sprint.model');
 const Project = require('../models/Project.model');
-const Task = require('../models/Task.model');
 const mongoose = require('mongoose');
 
 exports.createSprint = async (req, res) => {

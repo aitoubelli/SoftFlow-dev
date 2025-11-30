@@ -16,7 +16,7 @@ const protect = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'softflow-secret-key');
         req.user = await User.findById(decoded.id).select('-password');
         next();
-    } catch (err) {
+    } catch (_) {
         res.status(401).json({ error: 'Token invalide ou expiré.' });
     }
 };

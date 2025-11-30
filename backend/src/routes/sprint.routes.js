@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, adminOrOwnerOnly } = require('../middleware/auth.middleware'); // Assuming adminOrOwnerOnly exists or use protect + check in controller
+const { protect } = require('../middleware/auth.middleware');
 const { getSprintsByProject, createSprint } = require('../controllers/sprint.controller');
 
 // Get all sprints for a project

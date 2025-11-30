@@ -566,6 +566,7 @@ export default function ProjectDetails() {
                                                         projectId={id as string}
                                                         issueId={issue._id}
                                                         issueTitle={issue.title}
+                                                        issueStatus={issue.status}
                                                         projectMembers={project.members || []}
                                                         isOwner={user?.id === project.owner?._id || user?.role === 'admin'}
                                                         refreshTrigger={taskRefreshKey}

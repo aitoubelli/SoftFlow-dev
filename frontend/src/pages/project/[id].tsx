@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import CreateIssueForm from '@/components/form/CreateIssueForm';
 import EditIssueForm from '@/components/form/EditIssueForm';
 import CreateTaskForm from '@/components/form/CreateTaskForm';
+import CreateTestCaseForm from '@/components/form/CreateTestCaseForm';
 import TaskList from '@/components/task/TaskList';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { NavigationHeader } from '@/components/dashboard/NavigationHeader';
@@ -56,6 +57,8 @@ export default function ProjectDetails() {
     const [showCreateSprint, setShowCreateSprint] = useState(false);
     const [sprints, setSprints] = useState<any[]>([]);
     const [loadingSprints, setLoadingSprints] = useState(false);
+    const [showCreateTestCase, setShowCreateTestCase] = useState(false);
+    const [testCaseTask, setTestCaseTask] = useState<any>(null);
 
     const fetchSprints = async () => {
         if (!id || !token) return;
@@ -75,6 +78,11 @@ export default function ProjectDetails() {
         } finally {
             setLoadingSprints(false);
         }
+    };
+
+    const handleCreateTestCase = (task: any) => {
+        setTestCaseTask(task);
+        setShowCreateTestCase(true);
     };
 
     const fetchIssues = async () => {
@@ -461,9 +469,7 @@ export default function ProjectDetails() {
                                         Créer une nouvelle issue
                                     </Button>
                                 )}
-
-                            </CardContent>
-                             <CardContent className="space-y-4">
+                                
                                 {(user?.id === project.owner?._id || user?.role === 'admin') && (
                                     <Button
                                         onClick={() => setShowCreateSprint(true)}
@@ -473,6 +479,15 @@ export default function ProjectDetails() {
                                         Créer un nouveau sprint
                                     </Button>
                                 )}
+                                
+                                <Button
+                                    onClick={() => router.push(`/project/${id}/testcases`)}
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <FileText className="h-4 w-4 mr-3" />
+                                    Voir les fiches de test
+                                </Button>
 
                                 <div className="pt-4 border-t">
                                     <p className="text-sm text-muted-foreground mb-2">Informations</p>
@@ -537,6 +552,7 @@ export default function ProjectDetails() {
                                                         projectMembers={project.members || []}
                                                         isOwner={user?.id === project.owner?._id || user?.role === 'admin'}
                                                         refreshTrigger={taskRefreshKey}
+                                                        onCreateTestCase={handleCreateTestCase}
                                                     />
                                                     <p className="text-xs text-muted-foreground">
                                                         Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
@@ -658,6 +674,27 @@ export default function ProjectDetails() {
                             onCancel={() => {
                                 setShowCreateTask(false);
                                 setTaskIssue(null);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Create Test Case Modal */}
+            {showCreateTestCase && testCaseTask && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <CreateTestCaseForm
+                            projectId={id as string}
+                            taskId={testCaseTask._id}
+                            taskTitle={testCaseTask.title}
+                            onSuccess={() => {
+                                setShowCreateTestCase(false);
+                                setTestCaseTask(null);
+                            }}
+                            onCancel={() => {
+                                setShowCreateTestCase(false);
+                                setTestCaseTask(null);
                             }}
                         />
                     </div>

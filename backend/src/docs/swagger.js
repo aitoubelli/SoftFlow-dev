@@ -49,6 +49,10 @@ const swaggerDefinition = {
         {
             name: 'Health',
             description: 'Health check endpoints'
+        },
+        {
+            name: 'Documentation',
+            description: 'Documentation management endpoints'
         }
     ],
     components: {
@@ -276,6 +280,42 @@ const swaggerDefinition = {
                     error: {
                         type: 'string',
                         description: 'Error message'
+                    }
+                }
+            },
+            Documentation: {
+                type: 'object',
+                required: ['title', 'content', 'project', 'type'],
+                properties: {
+                    _id: {
+                        type: 'string',
+                        description: 'Documentation ID'
+                    },
+                    title: {
+                        type: 'string',
+                        description: 'Documentation title'
+                    },
+                    content: {
+                        type: 'string',
+                        description: 'Documentation content (Markdown)'
+                    },
+                    project: {
+                        $ref: '#/components/schemas/Project'
+                    },
+                    type: {
+                        type: 'string',
+                        enum: ['admin', 'user'],
+                        description: 'Documentation type'
+                    },
+                    createdAt: {
+                        type: 'string',
+                        format: 'date-time',
+                        description: 'Creation timestamp'
+                    },
+                    updatedAt: {
+                        type: 'string',
+                        format: 'date-time',
+                        description: 'Last update timestamp'
                     }
                 }
             }

@@ -489,6 +489,15 @@ export default function ProjectDetails() {
                                     Voir les fiches de test
                                 </Button>
 
+                                 <Button
+                                    onClick={() => router.push(`/project/${id}/docs`)}
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <FileText className="h-4 w-4 mr-3" />
+                                    Voir les documentations du projet
+                                </Button>
+
                                 <div className="pt-4 border-t">
                                     <p className="text-sm text-muted-foreground mb-2">Informations</p>
                                     <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">

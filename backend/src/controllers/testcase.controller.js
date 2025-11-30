@@ -28,20 +28,25 @@ exports.createTestCase = async (req, res) => {
         }
 
         // Create test case
-        const testCase = new TestCase({
+        const testCaseData = {
             name,
             description,
-            task: taskId || undefined,
             release,
             project: projectId,
             createdBy: req.user.id
-        });
+        };
+
+        if (taskId) {
+            testCaseData.task = taskId;
+        }
+
+        let testCase = new TestCase(testCaseData);
 
         await testCase.save();
 
         // Populate references before sending response
-        await testCase.populate('createdBy', 'name email');
-        await testCase.populate({
+        testCase = await testCase.populate('createdBy', 'name email');
+        testCase = await testCase.populate({
             path: 'task',
             select: 'title assignee',
             populate: {
@@ -150,8 +155,8 @@ exports.updateTestCase = async (req, res) => {
         await testCase.save();
 
         // Populate references before sending response
-        await testCase.populate('createdBy', 'name email');
-        await testCase.populate({
+        let populatedTestCase = await testCase.populate('createdBy', 'name email');
+        populatedTestCase = await populatedTestCase.populate({
             path: 'task',
             select: 'title assignee',
             populate: {
@@ -160,7 +165,7 @@ exports.updateTestCase = async (req, res) => {
             }
         });
 
-        res.json(testCase);
+        res.json(populatedTestCase);
     } catch (error) {
         console.error('Error updating test case:', error);
         res.status(500).json({ message: 'Server error' });

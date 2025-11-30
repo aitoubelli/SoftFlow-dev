@@ -1,6 +1,8 @@
 // backend/src/app.js
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./docs/openapi.json');
 const authRoutes = require('./routes/auth.routes');
 const healthRoute = require('./routes/health.route');
 const projectsRoute = require('./routes/projects.route');
@@ -18,6 +20,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Swagger UI documentation (unprotected for development)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Routes
 app.use('/api/auth', authRoutes);

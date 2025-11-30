@@ -124,8 +124,9 @@ export function NavigationHeader({
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Paramètres</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => window.open('http://localhost:8000/api-docs', '_blank')}>
+            API Documentation
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>Déconnexion</DropdownMenuItem>
         </DropdownMenuContent>

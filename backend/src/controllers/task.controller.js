@@ -270,6 +270,9 @@ const updateTask = async (req, res) => {
 
         await task.save();
 
+        // Populate assignee before returning
+        await task.populate('assignee', 'name email');
+
         return res.status(200).json(task);
     } catch (err) {
         console.error('Erreur mise à jour tâche:', err);

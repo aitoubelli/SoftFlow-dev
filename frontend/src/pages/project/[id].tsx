@@ -18,6 +18,7 @@ import EditIssueForm from '@/components/form/EditIssueForm';
 import CreateTaskForm from '@/components/form/CreateTaskForm';
 import TaskList from '@/components/task/TaskList';
 import { Sidebar } from '@/components/dashboard/Sidebar';
+import { NavigationHeader } from '@/components/dashboard/NavigationHeader';
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter';
 import {
   DropdownMenu,
@@ -268,30 +269,13 @@ export default function ProjectDetails() {
             <div className="flex min-h-screen w-full">
                 <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
                 <div className={`flex flex-col flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-[60px]' : 'md:ml-[220px] lg:ml-[280px]'}`}>
-                    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-                        <div className="w-full flex-1 flex items-center gap-4">
-                            <Link href="/" className="flex items-center gap-2 font-semibold">
-                                <LayoutDashboard className="h-6 w-6 text-[#0e1595]" />
-                                <span className="text-[#0e1595]">SoftFlow</span>
-                            </Link>
-                        </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="secondary" size="icon" className="rounded-full">
-                                    <CircleUser className="h-5 w-5" />
-                                    <span className="sr-only">Toggle user menu</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>Paramètres</DropdownMenuItem>
-                                <DropdownMenuItem>Support</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => logout()}>Déconnexion</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </header>
+                    <NavigationHeader
+                        isMobile={false}
+                        isCollapsed={isCollapsed}
+                        setIsCollapsed={setIsCollapsed}
+                        user={user}
+                        logout={logout}
+                    />
                     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
                         <div className="flex items-center justify-center min-h-[400px]">
                             <div className="text-lg">Loading...</div>
@@ -314,30 +298,13 @@ export default function ProjectDetails() {
         <div className="flex min-h-screen w-full">
             <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
             <div className={`flex flex-col flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-[60px]' : 'md:ml-[220px] lg:ml-[280px]'}`}>
-                <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-                    <div className="w-full flex-1 flex items-center gap-4">
-                        <Link href="/" className="flex items-center gap-2 font-semibold">
-                            <LayoutDashboard className="h-6 w-6 text-[#0e1595]" />
-                            <span className="text-[#0e1595]">SoftFlow</span>
-                        </Link>
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" size="icon" className="rounded-full">
-                                <CircleUser className="h-5 w-5" />
-                                <span className="sr-only">Toggle user menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Paramètres</DropdownMenuItem>
-                            <DropdownMenuItem>Support</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => logout()}>Déconnexion</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </header>
+                <NavigationHeader
+                    isMobile={false}
+                    isCollapsed={isCollapsed}
+                    setIsCollapsed={setIsCollapsed}
+                    user={user}
+                    logout={logout}
+                />
                 <main className="flex flex-1 flex-col gap-6 p-6 lg:p-8 overflow-auto pb-20 lg:pb-[60px] bg-gradient-to-br from-background via-background to-primary/5">
                     {/* Header Section */}
                     <div className="flex items-center justify-between">

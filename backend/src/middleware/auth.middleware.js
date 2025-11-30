@@ -45,4 +45,29 @@ const developerOnly = (req, res, next) => {
     }
 };
 
-module.exports = { protect, adminOnly, adminOrOwnerOnly, developerOnly };
+const canUpdateTestCase = (req, res, next) => {
+    if (!req.user) {
+        return res.status(403).json({ error: 'Non autorisé.' });
+    }
+    
+    // Admin and Owner can update everything
+    if (req.user.role === 'admin' || req.user.role === 'owner') {
+        return next();
+    }
+    
+    // Developers can only update the status field
+    if (req.user.role === 'dev') {
+        const allowedFields = ['status'];
+        const requestedFields = Object.keys(req.body);
+        const hasOtherFields = requestedFields.some(field => !allowedFields.includes(field));
+        
+        if (hasOtherFields) {
+            return res.status(403).json({ error: 'Les développeurs ne peuvent modifier que le statut des fiches de test.' });
+        }
+        return next();
+    }
+    
+    res.status(403).json({ error: 'Accès refusé.' });
+};
+
+module.exports = { protect, adminOnly, adminOrOwnerOnly, developerOnly, canUpdateTestCase };

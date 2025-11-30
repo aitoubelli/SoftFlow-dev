@@ -41,7 +41,14 @@ exports.createTestCase = async (req, res) => {
 
         // Populate references before sending response
         await testCase.populate('createdBy', 'name email');
-        await testCase.populate('task', 'title');
+        await testCase.populate({
+            path: 'task',
+            select: 'title assignee',
+            populate: {
+                path: 'assignee',
+                select: 'name email'
+            }
+        });
 
         res.status(201).json(testCase);
     } catch (error) {
@@ -57,7 +64,14 @@ exports.getTestCasesByProject = async (req, res) => {
 
         const testCases = await TestCase.find({ project: projectId })
             .populate('createdBy', 'name email')
-            .populate('task', 'title')
+            .populate({
+                path: 'task',
+                select: 'title assignee',
+                populate: {
+                    path: 'assignee',
+                    select: 'name email'
+                }
+            })
             .sort({ createdAt: -1 });
 
         res.json(testCases);
@@ -77,7 +91,14 @@ exports.getTestCasesByTask = async (req, res) => {
             task: taskId 
         })
             .populate('createdBy', 'name email')
-            .populate('task', 'title')
+            .populate({
+                path: 'task',
+                select: 'title assignee',
+                populate: {
+                    path: 'assignee',
+                    select: 'name email'
+                }
+            })
             .sort({ createdAt: -1 });
 
         res.json(testCases);
@@ -99,13 +120,24 @@ exports.updateTestCase = async (req, res) => {
             return res.status(404).json({ message: 'Test case not found' });
         }
 
-        // Verify project ownership
+        // Verify project ownership or membership
         const project = await Project.findById(projectId);
         if (!project) {
             return res.status(404).json({ message: 'Project not found' });
         }
 
-        if (project.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+        // Check authorization based on role and action
+        const isOwner = project.owner.toString() === req.user.id;
+        const isAdmin = req.user.role === 'admin';
+        const isMember = project.members.some(member => member.user.toString() === req.user.id);
+        
+        // Developers must be project members to update status
+        if (req.user.role === 'dev' && !isMember && !isAdmin) {
+            return res.status(403).json({ message: 'Not authorized to update test cases for this project' });
+        }
+        
+        // For non-admins and non-owners, check authorization
+        if (!isAdmin && !isOwner && !isMember) {
             return res.status(403).json({ message: 'Not authorized to update test cases for this project' });
         }
 
@@ -119,7 +151,14 @@ exports.updateTestCase = async (req, res) => {
 
         // Populate references before sending response
         await testCase.populate('createdBy', 'name email');
-        await testCase.populate('task', 'title');
+        await testCase.populate({
+            path: 'task',
+            select: 'title assignee',
+            populate: {
+                path: 'assignee',
+                select: 'name email'
+            }
+        });
 
         res.json(testCase);
     } catch (error) {

@@ -8,9 +8,10 @@ import { toast } from 'sonner';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { NavigationHeader } from '@/components/dashboard/NavigationHeader';
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter';
-import { FileCheck, ArrowLeft, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { FileCheck, ArrowLeft, CheckCircle, XCircle, Clock, Edit } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import Link from 'next/link';
+import EditTestCaseForm from '@/components/form/EditTestCaseForm';
 
 interface TestCase {
     _id: string;
@@ -20,6 +21,11 @@ interface TestCase {
     task?: {
         _id: string;
         title: string;
+        assignee?: {
+            _id: string;
+            name: string;
+            email: string;
+        };
     };
     release?: string;
     createdBy: {
@@ -36,6 +42,7 @@ export default function ProjectTestCases() {
     const [project, setProject] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [editingTestCase, setEditingTestCase] = useState<TestCase | null>(null);
     const { token, user, logout } = useAuth();
 
     useEffect(() => {
@@ -203,6 +210,12 @@ export default function ProjectTestCases() {
                                                                     <span>{testCase.task.title}</span>
                                                                 </div>
                                                             )}
+                                                            {testCase.task?.assignee && (
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="font-medium">Dev affecté:</span>
+                                                                    <span className="text-blue-600">{testCase.task.assignee.name}</span>
+                                                                </div>
+                                                            )}
                                                             {testCase.release && (
                                                                 <div className="flex items-center gap-1">
                                                                     <span className="font-medium">Release:</span>
@@ -219,6 +232,14 @@ export default function ProjectTestCases() {
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => setEditingTestCase(testCase)}
+                                                    >
+                                                        <Edit className="h-4 w-4 mr-1" />
+                                                        Modifier
+                                                    </Button>
                                                 </div>
                                             </div>
                                         ))}
@@ -238,6 +259,18 @@ export default function ProjectTestCases() {
                 </main>
                 <DashboardFooter isCollapsed={isCollapsed} />
             </div>
+
+            {editingTestCase && (
+                <EditTestCaseForm
+                    projectId={id as string}
+                    testCase={editingTestCase}
+                    onSuccess={() => {
+                        setEditingTestCase(null);
+                        fetchTestCases();
+                    }}
+                    onCancel={() => setEditingTestCase(null)}
+                />
+            )}
         </div>
     );
 }

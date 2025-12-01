@@ -12,11 +12,11 @@ export function UserRoleBadge({ role }: UserRoleBadgeProps) {
   const getRoleIcon = (userRole: string) => {
     switch (userRole) {
       case 'admin':
-        return <Shield className="h-4 w-4 text-red-500" />;
+        return <Shield data-testid="shield-icon" className="h-4 w-4 text-red-500" />;
       case 'owner':
-        return <Crown className="h-4 w-4 text-blue-600" />;
+        return <Crown data-testid="crown-icon" className="h-4 w-4 text-blue-600" />;
       case 'dev':
-        return <Code className="h-4 w-4 text-gray-500" />;
+        return <Code data-testid="code-icon" className="h-4 w-4 text-gray-500" />;
       default:
         return null;
     }

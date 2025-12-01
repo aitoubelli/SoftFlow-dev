@@ -169,4 +169,40 @@ describe('Projects API', () => {
             expect(res.body.members.length).toBe(0);
         });
     });
+
+    describe('GET /api/projects/counts', () => {
+        test('should return project counts for admin', async () => {
+            await Project.create({ name: 'P1', owner: ownerId });
+            await Project.create({ name: 'P2', owner: otherId });
+
+            const res = await request(app)
+                .get('/api/projects/counts')
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.totalProjects).toBe(2);
+            expect(res.body.teamMembers).toBe(0);
+        });
+
+        test('should return filtered project counts for non-admin', async () => {
+            await Project.create({ name: 'Owner Project', owner: ownerId });
+            await Project.create({ name: 'Member Project', owner: otherId, members: [{ user: ownerId, role: 'dev' }] });
+            await Project.create({ name: 'Other Project', owner: otherId });
+
+            const res = await request(app)
+                .get('/api/projects/counts')
+                .set('Authorization', `Bearer ${ownerToken}`);
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.totalProjects).toBe(2); // Owner and member projects
+            expect(res.body.teamMembers).toBe(0);
+        });
+
+        test('should return 401 without authentication', async () => {
+            const res = await request(app)
+                .get('/api/projects/counts');
+
+            expect(res.statusCode).toBe(401);
+        });
+    });
 });

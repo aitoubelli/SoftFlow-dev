@@ -165,4 +165,235 @@ describe('Issue API', () => {
 
         expect(res.statusCode).toBe(401);
     });
+
+    test('Owner can get issues for their project successfully', async () => {
+        // Create an issue first
+        await request(app)
+            .post(`/api/projects/${projectId}/issues`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({
+                title: 'Test Issue for Get',
+                description: 'Description',
+                projectId
+            });
+
+        const res = await request(app)
+            .get(`/api/issues/project/${projectId}`)
+            .set('Authorization', `Bearer ${ownerToken}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body.length).toBe(1);
+        expect(res.body[0].title).toBe('Test Issue for Get');
+        expect(res.body[0].createdBy.name).toBe('Owner');
+    });
+
+    test('Getting issues for project with no issues returns empty array', async () => {
+        const res = await request(app)
+            .get(`/api/issues/project/${projectId}`)
+            .set('Authorization', `Bearer ${ownerToken}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body.length).toBe(0);
+    });
+
+    test('Getting issues for non-existent project returns 404', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .get(`/api/issues/project/${fakeId}`)
+            .set('Authorization', `Bearer ${ownerToken}`);
+
+        expect(res.statusCode).toBe(404);
+        expect(res.body.error).toBe('Project not found.');
+    });
+
+    test('Getting issues with invalid project ID returns 500', async () => {
+        const res = await request(app)
+            .get('/api/issues/project/invalid-id')
+            .set('Authorization', `Bearer ${ownerToken}`);
+
+        expect(res.statusCode).toBe(500);
+        expect(res.body.error).toBeDefined();
+    });
+
+    test('Getting issues without authentication returns 401', async () => {
+        const res = await request(app)
+            .get(`/api/issues/project/${projectId}`);
+
+        expect(res.statusCode).toBe(401);
+    });
+
+    test('Owner can update issue status to closed', async () => {
+        // Create an issue
+        const createRes = await request(app)
+            .post(`/api/projects/${projectId}/issues`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({
+                title: 'Issue to Update',
+                description: 'Description',
+                projectId
+            });
+        const issueId = createRes.body._id;
+
+        const res = await request(app)
+            .patch(`/api/issues/${issueId}`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({ status: 'closed' });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.status).toBe('closed');
+        expect(res.body.closedAt).toBeDefined();
+    });
+
+    test('Owner can update issue title and description', async () => {
+        // Create an issue
+        const createRes = await request(app)
+            .post(`/api/projects/${projectId}/issues`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({
+                title: 'Original Title',
+                description: 'Original Description',
+                projectId
+            });
+        const issueId = createRes.body._id;
+
+        const res = await request(app)
+            .patch(`/api/issues/${issueId}`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({
+                title: 'Updated Title',
+                description: 'Updated Description'
+            });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.title).toBe('Updated Title');
+        expect(res.body.description).toBe('Updated Description');
+    });
+
+    test('Dev cannot update issue (403 Forbidden)', async () => {
+        // Create an issue
+        const createRes = await request(app)
+            .post(`/api/projects/${projectId}/issues`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({
+                title: 'Issue for Dev Update',
+                projectId
+            });
+        const issueId = createRes.body._id;
+
+        const res = await request(app)
+            .patch(`/api/issues/${issueId}`)
+            .set('Authorization', `Bearer ${devToken}`)
+            .send({ status: 'closed' });
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Only the project owner can modify issues.');
+    });
+
+    test('Updating non-existent issue returns 404', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .patch(`/api/issues/${fakeId}`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({ title: 'New Title' });
+
+        expect(res.statusCode).toBe(404);
+        expect(res.body.error).toBe('Issue not found.');
+    });
+
+    test('Updating issue with invalid ID returns 400', async () => {
+        const res = await request(app)
+            .patch('/api/issues/invalid-id')
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({ title: 'New Title' });
+
+        expect(res.statusCode).toBe(400);
+        expect(res.body.error).toBeDefined();
+    });
+
+    test('Updating issue without authentication returns 401', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .patch(`/api/issues/${fakeId}`)
+            .send({ title: 'New Title' });
+
+        expect(res.statusCode).toBe(401);
+    });
+
+    test('Owner can delete issue successfully', async () => {
+        // Create an issue
+        const createRes = await request(app)
+            .post(`/api/projects/${projectId}/issues`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({
+                title: 'Issue to Delete',
+                projectId
+            });
+        const issueId = createRes.body._id;
+
+        const res = await request(app)
+            .delete(`/api/issues/${issueId}`)
+            .set('Authorization', `Bearer ${ownerToken}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.message).toBe('Issue deleted successfully.');
+
+        // Verify it's deleted
+        const getRes = await request(app)
+            .get(`/api/issues/project/${projectId}`)
+            .set('Authorization', `Bearer ${ownerToken}`);
+        expect(getRes.body.length).toBe(0);
+    });
+
+    test('Dev cannot delete issue (403 Forbidden)', async () => {
+        // Create an issue
+        const createRes = await request(app)
+            .post(`/api/projects/${projectId}/issues`)
+            .set('Authorization', `Bearer ${ownerToken}`)
+            .send({
+                title: 'Issue for Dev Delete',
+                projectId
+            });
+        const issueId = createRes.body._id;
+
+        const res = await request(app)
+            .delete(`/api/issues/${issueId}`)
+            .set('Authorization', `Bearer ${devToken}`);
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.error).toBe('Only the project owner can delete issues.');
+    });
+
+    test('Deleting non-existent issue returns 404', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .delete(`/api/issues/${fakeId}`)
+            .set('Authorization', `Bearer ${ownerToken}`);
+
+        expect(res.statusCode).toBe(404);
+        expect(res.body.error).toBe('Issue not found.');
+    });
+
+    test('Deleting issue with invalid ID returns 500', async () => {
+        const res = await request(app)
+            .delete('/api/issues/invalid-id')
+            .set('Authorization', `Bearer ${ownerToken}`);
+
+        expect(res.statusCode).toBe(500);
+        expect(res.body.error).toBeDefined();
+    });
+
+    test('Deleting issue without authentication returns 401', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .delete(`/api/issues/${fakeId}`);
+
+        expect(res.statusCode).toBe(401);
+    });
 });

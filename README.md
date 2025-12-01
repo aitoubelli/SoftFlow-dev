@@ -1,12 +1,12 @@
 Outil interne pour gérer la production logicielle : tâches, sprints, releases, tests et documentation.
 
-## 🛠️ Stack technique
+## Stack technique
 - **Backend** : Node.js + Express + MongoDB (Mongoose)
 - **Frontend** : Next.js (React)
 - **Tests** : Jest + React Testing Library
 - **Déploiement** : Docker + Docker Compose
 
-## 🖥️ Développement local
+## Développement local
 
 ### Prérequis
 - [Docker](https://www.docker.com/) et [Docker Compose](https://docs.docker.com/compose/)
@@ -26,8 +26,8 @@ chmod +x init.sh
 ```
 
 ### Accéder à l’application
-- 🔗 Frontend: http://localhost:3000
-- 🔗 API Health Check: http://localhost:8000/api/health
+- Frontend: http://localhost:3000
+- API Health Check: http://localhost:8000/api/health
 
 ## Structure du projet
     SoftFlow-dev/

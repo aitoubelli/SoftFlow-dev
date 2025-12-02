@@ -25,8 +25,8 @@ const register = async (req, res) => {
         // Do not return password
         const { password: _, ...userResponse } = user.toObject();
         res.status(201).json(userResponse);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+    } catch (_) {
+        res.status(400).json({ error: 'Registration failed.' });
     }
 };
 
@@ -46,8 +46,8 @@ const login = async (req, res) => {
         );
 
         res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
-    } catch (err) {
-        res.status(500).json({ error: 'Erreur serveur.' });
+    } catch (_) {
+        res.status(500).json({ error: 'Login failed.' });
     }
 };
 
@@ -66,8 +66,8 @@ const getAllUsers = async (req, res) => {
             role: user.role || 'dev'
         }));
         res.json(formattedUsers);
-    } catch (err) {
-        res.status(500).json({ error: 'Erreur serveur.' });
+    } catch (_) {
+        res.status(500).json({ error: 'Failed to retrieve users.' });
     }
 };
 
@@ -94,8 +94,8 @@ const updateUserRole = async (req, res) => {
         await user.save();
 
         res.json({ message: 'Rôle utilisateur mis à jour avec succès.', user: { id: user._id, name: user.name, email: user.email, role: user.role } });
-    } catch (err) {
-        res.status(500).json({ error: 'Erreur serveur.' });
+    } catch (_) {
+        res.status(500).json({ error: 'Failed to update user role.' });
     }
 };
 
@@ -112,8 +112,8 @@ const getUserCountsByRole = async (req, res) => {
             ownerCount,
             devCount,
         });
-    } catch (err) {
-        res.status(500).json({ error: 'Erreur serveur.' });
+    } catch (_) {
+        res.status(500).json({ error: 'Failed to retrieve user counts.' });
     }
 };
 

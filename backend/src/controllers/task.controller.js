@@ -236,6 +236,15 @@ const updateTask = async (req, res) => {
             return res.status(404).json({ error: 'Tâche non trouvée.' });
         }
 
+        // Check if the associated issue is closed
+        const issue = await Issue.findById(task.issueId);
+        if (!issue) {
+            return res.status(404).json({ error: 'Issue associée non trouvée.' });
+        }
+        if (issue.status === 'closed') {
+            return res.status(400).json({ error: 'Impossible de modifier une tâche liée à une issue fermée.' });
+        }
+
         // Check permissions: Admin OR Owner OR Assignee
         const isAdmin = req.user.role === 'admin';
         const isOwner = project.owner.toString() === req.user._id.toString();
@@ -260,6 +269,9 @@ const updateTask = async (req, res) => {
         }
 
         await task.save();
+
+        // Populate assignee before returning
+        await task.populate('assignee', 'name email');
 
         return res.status(200).json(task);
     } catch (err) {
@@ -288,11 +300,23 @@ const deleteTask = async (req, res) => {
             return res.status(403).json({ error: 'Accès refusé. Seuls les propriétaires peuvent supprimer des tâches.' });
         }
 
-        // Find and delete the task
-        const task = await Task.findOneAndDelete({ _id: taskId, project: projectId });
+        // Find the task
+        const task = await Task.findOne({ _id: taskId, project: projectId });
         if (!task) {
             return res.status(404).json({ error: 'Tâche non trouvée.' });
         }
+
+        // Check if the associated issue is closed
+        const issue = await Issue.findById(task.issueId);
+        if (!issue) {
+            return res.status(404).json({ error: 'Issue associée non trouvée.' });
+        }
+        if (issue.status === 'closed') {
+            return res.status(400).json({ error: 'Impossible de supprimer une tâche liée à une issue fermée.' });
+        }
+
+        // Delete the task
+        await Task.findByIdAndDelete(taskId);
 
         return res.status(200).json({ message: 'Tâche supprimée avec succès.' });
     } catch (err) {

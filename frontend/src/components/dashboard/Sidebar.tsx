@@ -84,7 +84,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               {!isCollapsed && "Accueil Dashboard"}
             </Link>
             <Link
-              href="#"
+              href="/profile"
               className={`flex items-center gap-3 rounded-lg ${isCollapsed ? 'px-3' : 'px-6'} py-3 text-muted-foreground border-b border-border/50 transition-all hover:bg-muted/50 hover:text-primary ${isCollapsed ? 'justify-center' : ''}`}
             >
               <Settings className="h-4 w-4" />

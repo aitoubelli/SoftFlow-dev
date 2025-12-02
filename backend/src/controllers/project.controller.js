@@ -1,5 +1,4 @@
 const Project = require('../models/Project.model');
-const mongoose = require('mongoose');
 
 const getProjectCounts = async (req, res) => {
     try {

@@ -16,8 +16,10 @@ import { toast } from 'sonner';
 import CreateIssueForm from '@/components/form/CreateIssueForm';
 import EditIssueForm from '@/components/form/EditIssueForm';
 import CreateTaskForm from '@/components/form/CreateTaskForm';
+import CreateTestCaseForm from '@/components/form/CreateTestCaseForm';
 import TaskList from '@/components/task/TaskList';
 import { Sidebar } from '@/components/dashboard/Sidebar';
+import { NavigationHeader } from '@/components/dashboard/NavigationHeader';
 import { DashboardFooter } from '@/components/dashboard/DashboardFooter';
 import {
   DropdownMenu,
@@ -30,6 +32,8 @@ import {
 import { Bell, CircleUser, LayoutDashboard, Users, UserPlus, Calendar, FolderOpen, Plus, UserMinus, Settings, Search, CheckSquare, Square, FileText, Edit, Trash2, MoreVertical, CheckSquare as TaskIcon } from "lucide-react";
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import Link from 'next/link';
+import CreateSprintForm from '@/components/form/CreateSprintForm';
+import SprintList from '@/components/sprint/SprintList';
 
 export default function ProjectDetails() {
     const router = useRouter();
@@ -50,6 +54,36 @@ export default function ProjectDetails() {
     const [taskIssue, setTaskIssue] = useState<any>(null);
     const [taskRefreshKey, setTaskRefreshKey] = useState(0);
     const { token, user, logout } = useAuth();
+    const [showCreateSprint, setShowCreateSprint] = useState(false);
+    const [sprints, setSprints] = useState<any[]>([]);
+    const [loadingSprints, setLoadingSprints] = useState(false);
+    const [showCreateTestCase, setShowCreateTestCase] = useState(false);
+    const [testCaseTask, setTestCaseTask] = useState<any>(null);
+
+    const fetchSprints = async () => {
+        if (!id || !token) return;
+        setLoadingSprints(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/projects/${id}/sprints`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSprints(data);
+            }
+        } catch (error) {
+            console.error('Error fetching sprints:', error);
+        } finally {
+            setLoadingSprints(false);
+        }
+    };
+
+    const handleCreateTestCase = (task: any) => {
+        setTestCaseTask(task);
+        setShowCreateTestCase(true);
+    };
 
     const fetchIssues = async () => {
         if (!id || !token) return;
@@ -117,6 +151,7 @@ export default function ProjectDetails() {
             }
 
             fetchIssues();
+            fetchSprints();
         }
     }, [id, token, router.isReady]);
 
@@ -242,30 +277,13 @@ export default function ProjectDetails() {
             <div className="flex min-h-screen w-full">
                 <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
                 <div className={`flex flex-col flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-[60px]' : 'md:ml-[220px] lg:ml-[280px]'}`}>
-                    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-                        <div className="w-full flex-1 flex items-center gap-4">
-                            <Link href="/" className="flex items-center gap-2 font-semibold">
-                                <LayoutDashboard className="h-6 w-6 text-[#0e1595]" />
-                                <span className="text-[#0e1595]">SoftFlow</span>
-                            </Link>
-                        </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="secondary" size="icon" className="rounded-full">
-                                    <CircleUser className="h-5 w-5" />
-                                    <span className="sr-only">Toggle user menu</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>Paramètres</DropdownMenuItem>
-                                <DropdownMenuItem>Support</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => logout()}>Déconnexion</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </header>
+                    <NavigationHeader
+                        isMobile={false}
+                        isCollapsed={isCollapsed}
+                        setIsCollapsed={setIsCollapsed}
+                        user={user}
+                        logout={logout}
+                    />
                     <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto pb-20 lg:pb-[60px]">
                         <div className="flex items-center justify-center min-h-[400px]">
                             <div className="text-lg">Loading...</div>
@@ -288,30 +306,13 @@ export default function ProjectDetails() {
         <div className="flex min-h-screen w-full">
             <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
             <div className={`flex flex-col flex-1 transition-all duration-300 ${isCollapsed ? 'md:ml-[60px]' : 'md:ml-[220px] lg:ml-[280px]'}`}>
-                <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-                    <div className="w-full flex-1 flex items-center gap-4">
-                        <Link href="/" className="flex items-center gap-2 font-semibold">
-                            <LayoutDashboard className="h-6 w-6 text-[#0e1595]" />
-                            <span className="text-[#0e1595]">SoftFlow</span>
-                        </Link>
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" size="icon" className="rounded-full">
-                                <CircleUser className="h-5 w-5" />
-                                <span className="sr-only">Toggle user menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Paramètres</DropdownMenuItem>
-                            <DropdownMenuItem>Support</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => logout()}>Déconnexion</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </header>
+                <NavigationHeader
+                    isMobile={false}
+                    isCollapsed={isCollapsed}
+                    setIsCollapsed={setIsCollapsed}
+                    user={user}
+                    logout={logout}
+                />
                 <main className="flex flex-1 flex-col gap-6 p-6 lg:p-8 overflow-auto pb-20 lg:pb-[60px] bg-gradient-to-br from-background via-background to-primary/5">
                     {/* Header Section */}
                     <div className="flex items-center justify-between">
@@ -378,6 +379,9 @@ export default function ProjectDetails() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Sprints Section */}
+                    <SprintList sprints={sprints} loading={loadingSprints} />
 
                     {/* Team Management Section */}
                     <div className="grid gap-6 lg:grid-cols-2">
@@ -465,6 +469,34 @@ export default function ProjectDetails() {
                                         Créer une nouvelle issue
                                     </Button>
                                 )}
+                                
+                                {(user?.id === project.owner?._id || user?.role === 'admin') && (
+                                    <Button
+                                        onClick={() => setShowCreateSprint(true)}
+                                        className="w-full justify-start bg-primary hover:bg-primary/90"
+                                    >
+                                        <Plus className="h-4 w-4 mr-3" />
+                                        Créer un nouveau sprint
+                                    </Button>
+                                )}
+                                
+                                <Button
+                                    onClick={() => router.push(`/project/${id}/testcases`)}
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <FileText className="h-4 w-4 mr-3" />
+                                    Voir les fiches de test
+                                </Button>
+
+                                 <Button
+                                    onClick={() => router.push(`/project/${id}/docs`)}
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <FileText className="h-4 w-4 mr-3" />
+                                    Voir les documentations du projet
+                                </Button>
 
                                 <div className="pt-4 border-t">
                                     <p className="text-sm text-muted-foreground mb-2">Informations</p>
@@ -525,9 +557,11 @@ export default function ProjectDetails() {
                                                         projectId={id as string}
                                                         issueId={issue._id}
                                                         issueTitle={issue.title}
+                                                        issueStatus={issue.status}
                                                         projectMembers={project.members || []}
                                                         isOwner={user?.id === project.owner?._id || user?.role === 'admin'}
                                                         refreshTrigger={taskRefreshKey}
+                                                        onCreateTestCase={handleCreateTestCase}
                                                     />
                                                     <p className="text-xs text-muted-foreground">
                                                         Créé le {new Date(issue.createdAt).toLocaleDateString('fr-FR')}
@@ -649,6 +683,27 @@ export default function ProjectDetails() {
                             onCancel={() => {
                                 setShowCreateTask(false);
                                 setTaskIssue(null);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Create Test Case Modal */}
+            {showCreateTestCase && testCaseTask && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-md w-full max-h-[90vh] overflow-y-auto">
+                        <CreateTestCaseForm
+                            projectId={id as string}
+                            taskId={testCaseTask._id}
+                            taskTitle={testCaseTask.title}
+                            onSuccess={() => {
+                                setShowCreateTestCase(false);
+                                setTestCaseTask(null);
+                            }}
+                            onCancel={() => {
+                                setShowCreateTestCase(false);
+                                setTestCaseTask(null);
                             }}
                         />
                     </div>
@@ -849,6 +904,24 @@ export default function ProjectDetails() {
                                 fetchIssues();
                             }}
                             onCancel={() => setEditingIssue(null)}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Create Sprint Modal */}
+            {showCreateSprint && project && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-card rounded-xl shadow-elegant border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <CreateSprintForm
+                            projectId={project._id}
+                            onSuccess={() => {
+                                setShowCreateSprint(false);
+                                setIssuesRefreshKey(prev => prev + 1);
+                                fetchIssues();
+                                fetchSprints();
+                            }}
+                            onCancel={() => setShowCreateSprint(false)}
                         />
                     </div>
                 </div>

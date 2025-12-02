@@ -13,7 +13,8 @@ import {
     Trash2,
     Plus,
     ChevronDown,
-    ChevronRight
+    ChevronRight,
+    FileCheck
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -49,9 +50,11 @@ interface TaskListProps {
     projectId: string;
     issueId: string;
     issueTitle: string;
+    issueStatus?: string;
     projectMembers?: any[];
     isOwner?: boolean;
     refreshTrigger?: number;
+    onCreateTestCase?: (task: Task) => void;
 }
 
 const getStatusIcon = (status: string) => {
@@ -76,7 +79,7 @@ const getStatusBadge = (status: string) => {
     }
 };
 
-export default function TaskList({ projectId, issueId, issueTitle, projectMembers = [], isOwner = false, refreshTrigger = 0 }: TaskListProps) {
+export default function TaskList({ projectId, issueId, issueTitle, issueStatus = 'open', projectMembers = [], isOwner = false, refreshTrigger = 0, onCreateTestCase }: TaskListProps) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -263,6 +266,8 @@ export default function TaskList({ projectId, issueId, issueTitle, projectMember
                                             isOwner={isOwner}
                                             onAssignDeveloper={assignDeveloper}
                                             onEdit={() => setEditingTask(task)}
+                                            issueStatus={issueStatus}
+                                            onCreateTestCase={onCreateTestCase || (() => {})}
                                         />
                                     ))}
                                 </div>
@@ -285,6 +290,8 @@ export default function TaskList({ projectId, issueId, issueTitle, projectMember
                                             isOwner={isOwner}
                                             onAssignDeveloper={assignDeveloper}
                                             onEdit={() => setEditingTask(task)}
+                                            issueStatus={issueStatus}
+                                            onCreateTestCase={onCreateTestCase || (() => {})}
                                         />
                                     ))}
                                 </div>
@@ -307,6 +314,8 @@ export default function TaskList({ projectId, issueId, issueTitle, projectMember
                                             isOwner={isOwner}
                                             onAssignDeveloper={assignDeveloper}
                                             onEdit={() => setEditingTask(task)}
+                                            issueStatus={issueStatus}
+                                            onCreateTestCase={onCreateTestCase || (() => {})}
                                         />
                                     ))}
                                 </div>
@@ -346,9 +355,11 @@ interface TaskCardProps {
     isOwner?: boolean;
     onAssignDeveloper: (taskId: string, developerId: string | null) => void;
     onEdit: () => void;
+    issueStatus?: string;
+    onCreateTestCase: (task: Task) => void;
 }
 
-function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner = false, onAssignDeveloper, onEdit }: TaskCardProps) {
+function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner = false, onAssignDeveloper, onEdit, issueStatus = 'open', onCreateTestCase }: TaskCardProps) {
     return (
         <div className="p-3 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
             <div className="flex items-start gap-3">
@@ -380,6 +391,7 @@ function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner
                             <Select
                                 value={task.assignee?._id || "unassigned"}
                                 onValueChange={(value) => onAssignDeveloper(task._id, value === "unassigned" ? null : value)}
+                                disabled={issueStatus === 'closed'}
                             >
                                 <SelectTrigger className="h-7 w-[140px] text-xs">
                                     <SelectValue placeholder="Assigner à..." />
@@ -408,6 +420,7 @@ function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner
                         <Select
                             value={task.status}
                             onValueChange={(value) => onStatusUpdate(task._id, value)}
+                            disabled={issueStatus === 'closed'}
                         >
                             <SelectTrigger className="w-[140px]">
                                 <SelectValue />
@@ -420,18 +433,34 @@ function TaskCard({ task, onStatusUpdate, onDelete, projectMembers = [], isOwner
                         </Select>
                         <DropdownMenuSeparator />
                         {isOwner && (
-                            <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Modifier
-                            </DropdownMenuItem>
+                            <>
+                                <DropdownMenuItem
+                                    className={`cursor-pointer ${issueStatus === 'closed' ? 'opacity-50 pointer-events-none' : ''}`}
+                                    onClick={() => onCreateTestCase(task)}
+                                    disabled={issueStatus === 'closed'}
+                                >
+                                    <FileCheck className="h-4 w-4 mr-2" />
+                                    {issueStatus === 'closed' ? 'Créer fiche de test (Issue fermée)' : 'Créer fiche de test'}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className={`cursor-pointer ${issueStatus === 'closed' ? 'opacity-50 pointer-events-none' : ''}`}
+                                    onClick={onEdit}
+                                    disabled={issueStatus === 'closed'}
+                                >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    {issueStatus === 'closed' ? 'Modifier (Issue fermée)' : 'Modifier'}
+                                </DropdownMenuItem>
+                            </>
                         )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                            className="cursor-pointer text-destructive focus:text-destructive"
+                            className={`cursor-pointer text-destructive focus:text-destructive ${issueStatus === 'closed' ? 'opacity-50 pointer-events-none' : ''}`}
                             onClick={() => onDelete(task._id)}
+                            disabled={issueStatus === 'closed'}
                         >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer
+                            {issueStatus === 'closed' ? 'Supprimer (Issue fermée)' : 'Supprimer'}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

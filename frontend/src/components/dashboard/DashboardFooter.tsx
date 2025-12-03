@@ -9,7 +9,7 @@ interface DashboardFooterProps {
 
 export function DashboardFooter({ isCollapsed }: DashboardFooterProps) {
 const [apiHealth, setApiHealth] = useState("unknown");
-const softFlowVersion = "0.13.0";
+const softFlowVersion = "1.0.0";
 
   useEffect(() => {
     const checkApiHealth = async () => {
